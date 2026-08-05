@@ -1,0 +1,40 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id        String   @id @default(cuid())
+  nome      String
+  email     String   @unique
+  senha     String
+  role      String   @default("ADMIN")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Tribo {
+  id        String    @id @default(cuid())
+  nome      String
+  cor       String
+  logo      String?
+  musicas   Musica[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Musica {
+  id        String    @id @default(cuid())
+  nome      String
+  ano       Int
+  blobUrl   String
+  duracao   Int
+  tribo     Tribo     @relation(fields: [triboId], references: [id])
+  triboId   String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
