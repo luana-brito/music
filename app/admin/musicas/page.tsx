@@ -53,6 +53,12 @@ export default function MusicasPage() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const { register, handleSubmit, reset, control } = useForm<CreateMusicaInput>({
     resolver: zodResolver(createMusicaSchema),
+    defaultValues: {
+      nome: '',
+      ano: new Date().getFullYear(),
+      triboId: '',
+      duracao: 1,
+    },
   });
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -185,7 +191,7 @@ export default function MusicasPage() {
                 render={({ field }) => (
                   <FormControl fullWidth>
                     <InputLabel>Tribo</InputLabel>
-                    <Select {...field} label="Tribo">
+                    <Select {...field} value={field.value ?? ''} label="Tribo">
                       {tribos?.map((t) => (
                         <MenuItem key={t.id} value={t.id}>
                           {t.nome}

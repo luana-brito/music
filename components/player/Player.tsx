@@ -15,12 +15,11 @@ import DoneIcon from '@mui/icons-material/Done';
 import { usePlayer } from '@/hooks/usePlayer';
 
 export function Player() {
-  const { state, play, pause, resume, next, prev, seek, setVolume, toggleRepeat, toggleShuffle, downloadOffline, isOffline } = usePlayer();
+  const { state, pause, resume, next, prev, seek, setCurrentTime, setVolume, toggleRepeat, toggleShuffle, downloadOffline, isOffline, getOfflineAudioUrl, audioRef } = usePlayer();
   const [duration, setDuration] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
 
   const currentTrack = state.currentTrack?.musica;
-  if (!currentTrack) return null;
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -38,6 +37,105 @@ export function Player() {
       }
     }
   };
+
+  useEffect(() => {
+    if (!audioRef.current) return;
+    const audio = audioRef.current;
+    let localObjectUrl: string | null = null;
+    let cancelled = false;
+
+    const loadSource = async () => {
+      if (!state.currentTrack) {
+        audio.pause();
+        audio.removeAttribute('src');
+        audio.load();
+        setDuration(0);
+        return;
+      }
+
+      const musica = state.currentTrack.musica;
+      const shouldUseOffline = state.currentTrack.isOffline || isOffline(musica.id);
+
+      if (shouldUseOffline) {
+        const offlineUrl = await getOfflineAudioUrl(musica.id);
+        if (cancelled) {
+          if (offlineUrl) URL.revokeObjectURL(offlineUrl);
+          return;
+        }
+        if (offlineUrl) {
+          localObjectUrl = offlineUrl;
+          audio.src = offlineUrl;
+        } else {
+          audio.src = musica.blobUrl;
+        }
+      } else {
+        audio.src = musica.blobUrl;
+      }
+
+      audio.currentTime = 0;
+      setCurrentTime(0);
+
+      if (state.isPlaying) {
+        audio.play().catch(() => {});
+      }
+    };
+
+    loadSource();
+
+    return () => {
+      cancelled = true;
+      if (localObjectUrl) {
+        URL.revokeObjectURL(localObjectUrl);
+      }
+    };
+  }, [state.currentTrack, state.isPlaying, audioRef, setCurrentTime, isOffline, getOfflineAudioUrl]);
+
+  useEffect(() => {
+    if (!audioRef.current) return;
+    const audio = audioRef.current;
+
+    if (!state.currentTrack) return;
+
+    if (state.isPlaying) {
+      audio.play().catch(() => {});
+    } else {
+      audio.pause();
+    }
+  }, [state.isPlaying, state.currentTrack, audioRef]);
+
+  useEffect(() => {
+    if (!audioRef.current) return;
+    audioRef.current.volume = state.volume;
+  }, [state.volume, audioRef]);
+
+  useEffect(() => {
+    if (!audioRef.current) return;
+    const audio = audioRef.current;
+
+    const handleTimeUpdate = () => {
+      setDuration(audio.duration || 0);
+      setCurrentTime(audio.currentTime);
+    };
+
+    const handleEnded = () => {
+      if (state.repeatMode === 'one') {
+        audio.currentTime = 0;
+        audio.play().catch(() => {});
+        return;
+      }
+      next();
+    };
+
+    audio.addEventListener('timeupdate', handleTimeUpdate);
+    audio.addEventListener('ended', handleEnded);
+
+    return () => {
+      audio.removeEventListener('timeupdate', handleTimeUpdate);
+      audio.removeEventListener('ended', handleEnded);
+    };
+  }, [state.repeatMode, next, setCurrentTime, audioRef]);
+
+  if (!currentTrack) return null;
 
   return (
     <Box
@@ -97,10 +195,21 @@ export function Player() {
             <IconButton size="small" onClick={prev}>
               <SkipPreviousIcon fontSize="small" />
             </IconButton>
-            <IconButton onClick={() => (state.isPlaying ? pause() : resume())}>
+            <IconButton onClick={() => {
+              if (state.isPlaying) {
+                pause();
+                audioRef.current?.pause();
+              } else {
+                resume();
+                audioRef.current?.play().catch(() => {});
+              }
+            }}>
               {state.isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
             </IconButton>
-            <IconButton size="small" onClick={next}>
+            <IconButton size="small" onClick={() => {
+              next();
+              audioRef.current?.play().catch(() => {});
+            }}>
               <SkipNextIcon fontSize="small" />
             </IconButton>
           </Box>

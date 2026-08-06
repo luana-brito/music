@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { CssBaseline, ThemeProvider, createTheme, useMediaQuery } from '@mui/material';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { PlayerProvider } from '@/hooks/usePlayer';
@@ -9,6 +9,30 @@ const queryClient = new QueryClient();
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return;
+
+    const registerSw = async () => {
+      try {
+        const registration = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+        registration.addEventListener('updatefound', () => {
+          const newWorker = registration.installing;
+          if (!newWorker) return;
+
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              window.location.reload();
+            }
+          });
+        });
+      } catch (error) {
+        console.error('Falha ao registrar Service Worker:', error);
+      }
+    };
+
+    registerSw();
+  }, []);
 
   const theme = useMemo(
     () =>

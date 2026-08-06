@@ -2,13 +2,14 @@ import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
 const UPLOAD_DIR = join(process.cwd(), 'public', 'musicas');
 
 export async function POST(req: NextRequest) {
   try {
     // Verificar autenticação
-    const session = await getServerSession();
+    const session = await getServerSession(authOptions);
     if (!session || session.user?.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }

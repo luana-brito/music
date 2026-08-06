@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '../../../lib/prisma';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
 const createTriboSchema = z.object({
   nome: z.string().min(1),
@@ -14,6 +16,11 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  const session = await getServerSession(authOptions);
+  if (!session || session.user?.role !== 'ADMIN') {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   const body = await request.json();
   const parse = createTriboSchema.safeParse(body);
   if (!parse.success) {

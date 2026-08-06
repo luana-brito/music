@@ -5,7 +5,7 @@ import { Musica, Tribo, Usuario } from '@/types';
 const api = axios.create({ baseURL: '/api' });
 
 export function useMusicas() {
-  return useQuery({
+  return useQuery<Musica[]>({
     queryKey: ['musicas'],
     queryFn: async () => {
       const { data } = await api.get<Musica[]>('/musicas');
@@ -16,7 +16,7 @@ export function useMusicas() {
 }
 
 export function useTribos() {
-  return useQuery({
+  return useQuery<Tribo[]>({
     queryKey: ['tribos'],
     queryFn: async () => {
       const { data } = await api.get<Tribo[]>('/tribos');
@@ -81,9 +81,7 @@ export function useUploadMusica() {
     mutationFn: async (file: File) => {
       const formData = new FormData();
       formData.append('file', file);
-      const { data } = await api.post<{ url: string; filename: string }>('/musicas/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      const { data } = await api.post<{ url: string; filename: string }>('/musicas/upload', formData);
       return data;
     },
   });

@@ -43,7 +43,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           <ListItemButton
             key={item.href}
             onClick={() => {
-              router.push(item.href);
+              router.push(item.href as never);
               setMobileOpen(false);
             }}
             selected={pathname === item.href}
