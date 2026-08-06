@@ -49,6 +49,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ url: blob.url, filename });
     }
 
+    if (process.env.NODE_ENV === 'production') {
+      return NextResponse.json(
+        { error: 'Configuração ausente: defina BLOB_READ_WRITE_TOKEN no ambiente de produção.' },
+        { status: 500 }
+      );
+    }
+
     // Fallback local para desenvolvimento sem token do Blob.
     await mkdir(UPLOAD_DIR, { recursive: true });
     const filepath = join(UPLOAD_DIR, filename);

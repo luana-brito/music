@@ -24,6 +24,7 @@ import {
   Alert,
   LinearProgress,
 } from '@mui/material';
+import axios from 'axios';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
@@ -51,6 +52,7 @@ export default function MusicasPage() {
   const [openDialog, setOpenDialog] = useState(false);
   const [uploadedUrl, setUploadedUrl] = useState<string>('');
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadError, setUploadError] = useState<string>('');
   const { register, handleSubmit, reset, control } = useForm<CreateMusicaInput>({
     resolver: zodResolver(createMusicaSchema),
     defaultValues: {
@@ -65,13 +67,19 @@ export default function MusicasPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    setUploadError('');
     setUploadProgress(50);
     uploadMusica(file, {
       onSuccess: (data) => {
         setUploadedUrl(data.url);
         setUploadProgress(100);
       },
-      onError: () => {
+      onError: (error) => {
+        const message = axios.isAxiosError(error)
+          ? (error.response?.data?.error as string) || 'Falha no upload do arquivo'
+          : 'Falha no upload do arquivo';
+        setUploadError(message);
+        setUploadedUrl('');
         setUploadProgress(0);
       },
     });
@@ -108,6 +116,7 @@ export default function MusicasPage() {
               setOpenDialog(true);
               setUploadedUrl('');
               setUploadProgress(0);
+              setUploadError('');
             }}
           >
             Nova Música
@@ -175,6 +184,11 @@ export default function MusicasPage() {
                   </Box>
                 </label>
                 {uploadProgress > 0 && <LinearProgress variant="determinate" value={uploadProgress} sx={{ mt: 2 }} />}
+                {uploadError && (
+                  <Alert severity="error" sx={{ mt: 2 }}>
+                    {uploadError}
+                  </Alert>
+                )}
                 {uploadedUrl && (
                   <Alert severity="success" sx={{ mt: 2 }}>
                     ✓ Arquivo enviado com sucesso
