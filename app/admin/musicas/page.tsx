@@ -159,7 +159,7 @@ export default function MusicasPage() {
               {/* Upload de Arquivo */}
               <Box sx={{ border: '2px dashed rgba(255,255,255,0.2)', borderRadius: 2, p: 3, textAlign: 'center' }}>
                 <input
-                  accept="audio/*"
+                  accept=".mp3,.mpeg,audio/mpeg,audio/mp3,audio/x-mpeg,video/mpeg"
                   style={{ display: 'none' }}
                   id="file-upload"
                   type="file"
