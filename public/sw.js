@@ -1,4 +1,4 @@
-const CACHE_NAME = 'biblioteca-musical-v1';
+const CACHE_NAME = 'biblioteca-musical-v3';
 const RUNTIME_CACHE = 'biblioteca-musical-runtime-v1';
 const OFFLINE_URL = '/offline.html';
 
@@ -27,6 +27,10 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(request.url);
 
   if (request.method !== 'GET') {
+    return;
+  }
+
+  if (url.pathname.startsWith('/_next/') || url.pathname.includes('webpack-hmr') || url.pathname.startsWith('/api/auth/')) {
     return;
   }
 

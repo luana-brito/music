@@ -1,20 +1,18 @@
 'use client';
 
 import React from 'react';
-import { Box, Stack, Typography, Button, Card, CardContent } from '@mui/material';
+import { Stack, Typography, Button, Card, CardContent } from '@mui/material';
 import { AdminLayout } from '@/components/layout/AdminLayout';
+import { AdminPage } from '@/components/admin/AdminPage';
 import { signOut } from 'next-auth/react';
 
 export default function AdminSettingsPage() {
   return (
     <AdminLayout>
-      <Box sx={{ padding: '32px 24px', maxWidth: 1200, margin: '0 auto' }}>
-        <Typography variant="h4" sx={{ mb: 4, fontWeight: 700 }}>
-          Configurações
-        </Typography>
+      <AdminPage title="Configurações">
 
         <Stack spacing={3}>
-          <Card sx={{ background: 'rgba(25,118,210,0.1)', border: '1px solid rgba(25,118,210,0.3)' }}>
+          <Card sx={{ background: 'rgba(255,107,0,0.1)', border: '1px solid rgba(255,107,0,0.28)' }}>
             <CardContent>
               <Typography variant="h6" sx={{ mb: 1 }}>
                 Segurança
@@ -28,7 +26,7 @@ export default function AdminSettingsPage() {
             </CardContent>
           </Card>
 
-          <Card sx={{ background: 'rgba(25,118,210,0.1)', border: '1px solid rgba(25,118,210,0.3)' }}>
+          <Card sx={{ background: 'rgba(255,107,0,0.1)', border: '1px solid rgba(255,107,0,0.28)' }}>
             <CardContent>
               <Typography variant="h6" sx={{ mb: 1 }}>
                 Vercel Blob
@@ -42,7 +40,7 @@ export default function AdminSettingsPage() {
             </CardContent>
           </Card>
 
-          <Card sx={{ background: 'rgba(25,118,210,0.1)', border: '1px solid rgba(25,118,210,0.3)' }}>
+          <Card sx={{ background: 'rgba(255,107,0,0.1)', border: '1px solid rgba(255,107,0,0.28)' }}>
             <CardContent>
               <Typography variant="h6" sx={{ mb: 1 }}>
                 Banco de Dados
@@ -74,7 +72,7 @@ export default function AdminSettingsPage() {
             </CardContent>
           </Card>
         </Stack>
-      </Box>
+      </AdminPage>
     </AdminLayout>
   );
 }

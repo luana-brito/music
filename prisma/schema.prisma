@@ -32,7 +32,9 @@ model Musica {
   nome      String
   ano       Int
   blobUrl   String
+  capa      String?
   duracao   Int
+  plays     Int       @default(0)
   tribo     Tribo     @relation(fields: [triboId], references: [id])
   triboId   String
   createdAt DateTime  @default(now())

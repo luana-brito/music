@@ -1,7 +1,8 @@
 'use client';
 
-import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
-import { PlayerState, PlaylistItem, Musica } from '@/types';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { Musica, PlayerState, PlaylistItem } from '@/types';
+import { openOfflineDb } from '@/lib/offlineDb';
 
 interface PlayerContextType {
   state: PlayerState;
@@ -11,7 +12,6 @@ interface PlayerContextType {
   next: () => void;
   prev: () => void;
   seek: (time: number) => void;
-  setCurrentTime: (time: number) => void;
   setVolume: (volume: number) => void;
   toggleRepeat: () => void;
   toggleShuffle: () => void;
@@ -30,62 +30,22 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     currentTrack: null,
     playlist: [],
     isPlaying: false,
-    currentTime: 0,
     volume: 1,
     repeatMode: 'none',
     isShuffle: false,
   });
-
   const [offlineMusicas, setOfflineMusicas] = useState<Set<string>>(new Set());
 
-  const openDb = useCallback(() => {
-    return new Promise<IDBDatabase>((resolve, reject) => {
-      const request = indexedDB.open('BibliotecaMusical', 1);
-
-      request.onupgradeneeded = () => {
-        const db = request.result;
-        if (!db.objectStoreNames.contains('musicas')) {
-          db.createObjectStore('musicas', { keyPath: 'id' });
-        }
-      };
-
-      request.onsuccess = () => {
-        const db = request.result;
-
-        if (db.objectStoreNames.contains('musicas')) {
-          resolve(db);
-          return;
-        }
-
-        // Repair legacy DBs created without the required object store.
-        const nextVersion = db.version + 1;
-        db.close();
-
-        const repairRequest = indexedDB.open('BibliotecaMusical', nextVersion);
-        repairRequest.onupgradeneeded = () => {
-          const repairDb = repairRequest.result;
-          if (!repairDb.objectStoreNames.contains('musicas')) {
-            repairDb.createObjectStore('musicas', { keyPath: 'id' });
-          }
-        };
-        repairRequest.onsuccess = () => resolve(repairRequest.result);
-        repairRequest.onerror = () => reject(repairRequest.error);
-      };
-
-      request.onerror = () => reject(request.error);
-    });
-  }, []);
-
   useEffect(() => {
-    const loadOfflineData = async () => {
-      if (typeof window !== 'undefined') {
-        const stored = localStorage.getItem('offlineMusicas');
-        if (stored) {
-          setOfflineMusicas(new Set(JSON.parse(stored)));
-        }
+    if (typeof window === 'undefined') return;
+    const stored = localStorage.getItem('offlineMusicas');
+    if (stored) {
+      try {
+        setOfflineMusicas(new Set(JSON.parse(stored)));
+      } catch {
+        localStorage.removeItem('offlineMusicas');
       }
-    };
-    loadOfflineData();
+    }
   }, []);
 
   const play = useCallback((playlist: PlaylistItem[], startIndex = 0) => {
@@ -94,7 +54,6 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
       playlist,
       currentTrack: playlist[startIndex] || null,
       isPlaying: Boolean(playlist[startIndex]),
-      currentTime: 0,
     }));
   }, []);
 
@@ -109,84 +68,51 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   const next = useCallback(() => {
     setState((prev) => {
       if (!prev.currentTrack || prev.playlist.length === 0) return prev;
-      const currentIndex = prev.playlist.indexOf(prev.currentTrack);
+      const currentIndex = prev.playlist.findIndex((item) => item.musica.id === prev.currentTrack?.musica.id);
 
       if (prev.isShuffle && prev.playlist.length > 1) {
         let randomIndex = currentIndex;
         while (randomIndex === currentIndex) {
           randomIndex = Math.floor(Math.random() * prev.playlist.length);
         }
-
-        return {
-          ...prev,
-          currentTrack: prev.playlist[randomIndex],
-          currentTime: 0,
-          isPlaying: true,
-        };
+        return { ...prev, currentTrack: prev.playlist[randomIndex], isPlaying: true };
       }
 
       let nextIndex = currentIndex + 1;
-
       if (nextIndex >= prev.playlist.length) {
-        if (prev.repeatMode === 'all') {
-          nextIndex = 0;
-        } else {
-          return {
-            ...prev,
-            isPlaying: false,
-          };
-        }
+        if (prev.repeatMode === 'all') nextIndex = 0;
+        else return { ...prev, isPlaying: false };
       }
 
-      return {
-        ...prev,
-        currentTrack: prev.playlist[nextIndex],
-        currentTime: 0,
-        isPlaying: true,
-      };
+      return { ...prev, currentTrack: prev.playlist[nextIndex], isPlaying: true };
     });
   }, []);
 
   const prev = useCallback(() => {
-    setState((prev) => {
-      if (!prev.currentTrack || prev.playlist.length === 0) return prev;
-      const currentIndex = prev.playlist.indexOf(prev.currentTrack);
+    setState((prevState) => {
+      if (!prevState.currentTrack || prevState.playlist.length === 0) return prevState;
+      const currentIndex = prevState.playlist.findIndex(
+        (item) => item.musica.id === prevState.currentTrack?.musica.id
+      );
       const prevIndex = currentIndex - 1;
-
-      if (prevIndex < 0) return prev;
-
-      return {
-        ...prev,
-        currentTrack: prev.playlist[prevIndex],
-        currentTime: 0,
-        isPlaying: true,
-      };
+      if (prevIndex < 0) return prevState;
+      return { ...prevState, currentTrack: prevState.playlist[prevIndex], isPlaying: true };
     });
   }, []);
 
   const seek = useCallback((time: number) => {
-    setState((prev) => ({ ...prev, currentTime: time }));
-    if (audioRef.current) {
-      audioRef.current.currentTime = time;
-    }
-  }, []);
-
-  const setCurrentTime = useCallback((time: number) => {
-    setState((prev) => ({ ...prev, currentTime: time }));
+    if (audioRef.current) audioRef.current.currentTime = time;
   }, []);
 
   const setVolume = useCallback((volume: number) => {
     setState((prev) => ({ ...prev, volume }));
-    if (audioRef.current) {
-      audioRef.current.volume = volume;
-    }
+    if (audioRef.current) audioRef.current.volume = volume;
   }, []);
 
   const toggleRepeat = useCallback(() => {
     setState((prev) => {
       const modes: Array<'none' | 'one' | 'all'> = ['none', 'one', 'all'];
-      const currentIndex = modes.indexOf(prev.repeatMode);
-      const nextMode = modes[(currentIndex + 1) % modes.length];
+      const nextMode = modes[(modes.indexOf(prev.repeatMode) + 1) % modes.length];
       return { ...prev, repeatMode: nextMode };
     });
   }, []);
@@ -199,15 +125,13 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     try {
       const response = await fetch(musica.blobUrl);
       const blob = await response.blob();
-      const db = await openDb();
+      const db = await openOfflineDb();
       await new Promise<void>((resolve, reject) => {
         const tx = db.transaction('musicas', 'readwrite');
-        const store = tx.objectStore('musicas');
-        store.put({ id: musica.id, blob, metadata: musica });
+        tx.objectStore('musicas').put({ id: musica.id, blob, metadata: musica });
         tx.oncomplete = () => resolve();
         tx.onerror = () => reject(tx.error);
       });
-
       setOfflineMusicas((prev) => {
         const updated = new Set(prev);
         updated.add(musica.id);
@@ -217,19 +141,17 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error('Erro ao baixar música:', error);
     }
-  }, [openDb]);
+  }, []);
 
   const removeOffline = useCallback(async (musicaId: string) => {
     try {
-      const db = await openDb();
+      const db = await openOfflineDb();
       await new Promise<void>((resolve, reject) => {
         const tx = db.transaction('musicas', 'readwrite');
-        const store = tx.objectStore('musicas');
-        store.delete(musicaId);
+        tx.objectStore('musicas').delete(musicaId);
         tx.oncomplete = () => resolve();
         tx.onerror = () => reject(tx.error);
       });
-
       setOfflineMusicas((prev) => {
         const updated = new Set(prev);
         updated.delete(musicaId);
@@ -239,35 +161,67 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error('Erro ao remover música offline:', error);
     }
-  }, [openDb]);
+  }, []);
 
-  const isOffline = useCallback((musicaId: string) => {
-    return offlineMusicas.has(musicaId);
-  }, [offlineMusicas]);
+  const isOffline = useCallback((musicaId: string) => offlineMusicas.has(musicaId), [offlineMusicas]);
 
   const getOfflineAudioUrl = useCallback(async (musicaId: string) => {
     try {
-      const db = await openDb();
-      const record = await new Promise<{ id: string; blob: Blob; metadata: Musica } | undefined>((resolve, reject) => {
+      const db = await openOfflineDb();
+      const record = await new Promise<{ blob: Blob } | undefined>((resolve, reject) => {
         const tx = db.transaction('musicas', 'readonly');
-        const store = tx.objectStore('musicas');
-        const request = store.get(musicaId);
+        const request = tx.objectStore('musicas').get(musicaId);
         request.onsuccess = () => resolve(request.result);
         request.onerror = () => reject(request.error);
       });
-
       if (!record?.blob) return null;
       return URL.createObjectURL(record.blob);
     } catch (error) {
       console.error('Erro ao resolver áudio offline:', error);
       return null;
     }
-  }, [openDb]);
+  }, []);
+
+  const value = useMemo(
+    () => ({
+      state,
+      play,
+      pause,
+      resume,
+      next,
+      prev,
+      seek,
+      setVolume,
+      toggleRepeat,
+      toggleShuffle,
+      downloadOffline,
+      removeOffline,
+      isOffline,
+      getOfflineAudioUrl,
+      audioRef,
+    }),
+    [
+      state,
+      play,
+      pause,
+      resume,
+      next,
+      prev,
+      seek,
+      setVolume,
+      toggleRepeat,
+      toggleShuffle,
+      downloadOffline,
+      removeOffline,
+      isOffline,
+      getOfflineAudioUrl,
+    ]
+  );
 
   return (
-    <PlayerContext.Provider value={{ state, play, pause, resume, next, prev, seek, setCurrentTime, setVolume, toggleRepeat, toggleShuffle, downloadOffline, removeOffline, isOffline, getOfflineAudioUrl, audioRef }}>
+    <PlayerContext.Provider value={value}>
       {children}
-      <audio ref={audioRef} controls style={{ display: 'none' }} />
+      <audio ref={audioRef} playsInline preload="auto" style={{ display: 'none' }} />
     </PlayerContext.Provider>
   );
 }

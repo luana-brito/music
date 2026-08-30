@@ -23,6 +23,8 @@ import {
   InputLabel,
   Alert,
   LinearProgress,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import axios from 'axios';
 import EditIcon from '@mui/icons-material/Edit';
@@ -30,10 +32,17 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { AdminLayout } from '@/components/layout/AdminLayout';
-import { useMusicas, useTribos, useCreateMusica, useUploadMusica } from '@/hooks/useApi';
+import { AdminPage } from '@/components/admin/AdminPage';
+import { ImageUploadField } from '@/components/ui/ImageUploadField';
+import { CoverArt } from '@/components/ui/CoverArt';
+import { useMusicas, useTribos, useCreateMusica, useUploadMusica, useUploadImagem } from '@/hooks/useApi';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { getCapaUrl } from '@/lib/capa';
+import { formatDuration } from '@/lib/format';
+import { readAudioDuration } from '@/lib/audioDuration';
+import { MUTED } from '@/lib/theme';
 
 const createMusicaSchema = z.object({
   nome: z.string().min(1, 'Nome é obrigatório'),
@@ -45,23 +54,32 @@ const createMusicaSchema = z.object({
 type CreateMusicaInput = z.infer<typeof createMusicaSchema>;
 
 export default function MusicasPage() {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { data: musicas, isLoading } = useMusicas();
   const { data: tribos } = useTribos();
   const { mutate: createMusica, isPending: isCreating } = useCreateMusica();
   const { mutate: uploadMusica, isPending: isUploading } = useUploadMusica();
+  const { mutate: uploadImagem, isPending: isUploadingImage } = useUploadImagem();
   const [openDialog, setOpenDialog] = useState(false);
-  const [uploadedUrl, setUploadedUrl] = useState<string>('');
+  const [uploadedUrl, setUploadedUrl] = useState('');
+  const [capaUrl, setCapaUrl] = useState('');
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [uploadError, setUploadError] = useState<string>('');
-  const { register, handleSubmit, reset, control } = useForm<CreateMusicaInput>({
+  const [uploadError, setUploadError] = useState('');
+  const { register, handleSubmit, reset, control, watch, setValue } = useForm<CreateMusicaInput>({
     resolver: zodResolver(createMusicaSchema),
     defaultValues: {
       nome: '',
       ano: new Date().getFullYear(),
       triboId: '',
-      duracao: 1,
+      duracao: 0,
     },
   });
+
+  const selectedTriboId = watch('triboId');
+  const selectedTribo = tribos?.find((t) => t.id === selectedTriboId);
+  const capaPreview = capaUrl || selectedTribo?.logo || '';
+  const detectedDuration = watch('duracao');
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -69,6 +87,7 @@ export default function MusicasPage() {
 
     setUploadError('');
     setUploadProgress(50);
+    readAudioDuration(file).then((seconds) => setValue('duracao', seconds));
     uploadMusica(file, {
       onSuccess: (data) => {
         setUploadedUrl(data.url);
@@ -92,11 +111,12 @@ export default function MusicasPage() {
     }
 
     createMusica(
-      { ...data, blobUrl: uploadedUrl },
+      { ...data, blobUrl: uploadedUrl, capa: capaUrl || null },
       {
         onSuccess: () => {
           reset();
           setUploadedUrl('');
+          setCapaUrl('');
           setUploadProgress(0);
           setOpenDialog(false);
         },
@@ -104,34 +124,68 @@ export default function MusicasPage() {
     );
   };
 
+  const resetDialog = () => {
+    setOpenDialog(true);
+    setUploadedUrl('');
+    setCapaUrl('');
+    setUploadProgress(0);
+    setUploadError('');
+  };
+
   return (
     <AdminLayout>
-      <Box sx={{ padding: '32px 24px', maxWidth: 1200, margin: '0 auto' }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-          <h2>Músicas</h2>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => {
-              setOpenDialog(true);
-              setUploadedUrl('');
-              setUploadProgress(0);
-              setUploadError('');
-            }}
-          >
+      <AdminPage
+        title="Músicas"
+        action={
+          <Button variant="contained" startIcon={<AddIcon />} onClick={resetDialog} sx={{ flexShrink: 0 }}>
             Nova Música
           </Button>
-        </Box>
+        }
+      >
 
         {isLoading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
             <CircularProgress />
           </Box>
+        ) : isMobile ? (
+          <Stack spacing={1}>
+            {musicas?.map((musica) => (
+              <Box
+                key={musica.id}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1.5,
+                  p: 1.5,
+                  background: 'rgba(255,255,255,0.05)',
+                  borderRadius: 2,
+                  minWidth: 0,
+                }}
+              >
+                <CoverArt name={musica.nome} color={musica.tribo?.cor} src={getCapaUrl(musica)} size={48} />
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  <Box sx={{ fontWeight: 700, fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {musica.nome}
+                  </Box>
+                  <Box sx={{ color: MUTED, fontSize: 12 }}>
+                    {musica.tribo?.nome} • {musica.ano} • {formatDuration(musica.duracao)}
+                  </Box>
+                </Box>
+                <IconButton size="small" color="primary" aria-label={`Editar ${musica.nome}`}>
+                  <EditIcon />
+                </IconButton>
+                <IconButton size="small" color="error" aria-label={`Excluir ${musica.nome}`}>
+                  <DeleteIcon />
+                </IconButton>
+              </Box>
+            ))}
+          </Stack>
         ) : (
           <Box sx={{ background: 'rgba(255,255,255,0.05)', borderRadius: 2, overflow: 'auto' }}>
             <Table>
               <TableHead>
-                <TableRow sx={{ background: 'rgba(25,118,210,0.1)' }}>
+                <TableRow sx={{ background: 'rgba(255,107,0,0.12)' }}>
+                  <TableCell>Capa</TableCell>
                   <TableCell>Nome</TableCell>
                   <TableCell>Ano</TableCell>
                   <TableCell>Tribo</TableCell>
@@ -142,10 +196,13 @@ export default function MusicasPage() {
               <TableBody>
                 {musicas?.map((musica) => (
                   <TableRow key={musica.id} sx={{ '&:hover': { background: 'rgba(255,255,255,0.05)' } }}>
+                    <TableCell>
+                      <CoverArt name={musica.nome} color={musica.tribo?.cor} src={getCapaUrl(musica)} size={40} />
+                    </TableCell>
                     <TableCell>{musica.nome}</TableCell>
                     <TableCell>{musica.ano}</TableCell>
                     <TableCell>{musica.tribo?.nome}</TableCell>
-                    <TableCell>{Math.floor(musica.duracao / 60)}:{(musica.duracao % 60).toString().padStart(2, '0')}</TableCell>
+                    <TableCell>{formatDuration(musica.duracao)}</TableCell>
                     <TableCell>
                       <IconButton size="small" color="primary">
                         <EditIcon />
@@ -161,11 +218,10 @@ export default function MusicasPage() {
           </Box>
         )}
 
-        <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="sm" fullWidth>
+        <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="sm" fullWidth fullScreen={isMobile}>
           <DialogTitle>Nova Música</DialogTitle>
           <DialogContent>
             <Stack spacing={2} sx={{ mt: 2 }}>
-              {/* Upload de Arquivo */}
               <Box sx={{ border: '2px dashed rgba(255,255,255,0.2)', borderRadius: 2, p: 3, textAlign: 'center' }}>
                 <input
                   accept=".mp3,.mpeg,audio/mpeg,audio/mp3,audio/x-mpeg,video/mpeg"
@@ -191,12 +247,25 @@ export default function MusicasPage() {
                 )}
                 {uploadedUrl && (
                   <Alert severity="success" sx={{ mt: 2 }}>
-                    ✓ Arquivo enviado com sucesso
+                    Arquivo enviado com sucesso
                   </Alert>
                 )}
               </Box>
 
-              {/* Formulário */}
+              <ImageUploadField
+                id="musica-capa-upload"
+                label="Enviar capa"
+                hint="Opcional. Sem capa, usa a imagem da tribo."
+                previewUrl={capaPreview}
+                uploading={isUploadingImage}
+                onFile={(file) => {
+                  uploadImagem(file, {
+                    onSuccess: (data) => setCapaUrl(data.url),
+                  });
+                }}
+                onClear={() => setCapaUrl('')}
+              />
+
               <TextField label="Nome" {...register('nome')} fullWidth />
               <TextField label="Ano" {...register('ano', { valueAsNumber: true })} fullWidth type="number" />
               <Controller
@@ -215,22 +284,22 @@ export default function MusicasPage() {
                   </FormControl>
                 )}
               />
-              <TextField label="Duração (segundos)" {...register('duracao', { valueAsNumber: true })} fullWidth type="number" />
+              <TextField
+                label="Duração"
+                value={detectedDuration >= 1 ? formatDuration(detectedDuration) : 'Lida automaticamente do áudio'}
+                fullWidth
+                disabled
+              />
             </Stack>
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setOpenDialog(false)}>Cancelar</Button>
-            <Button
-              onClick={handleSubmit(onSubmit)}
-              variant="contained"
-              disabled={isCreating || !uploadedUrl}
-            >
+            <Button onClick={handleSubmit(onSubmit)} variant="contained" disabled={isCreating || !uploadedUrl || isUploadingImage || detectedDuration < 1}>
               {isCreating ? <CircularProgress size={24} /> : 'Criar'}
             </Button>
           </DialogActions>
         </Dialog>
-      </Box>
+      </AdminPage>
     </AdminLayout>
   );
 }
-

@@ -1,7 +1,20 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Box, Drawer, List, ListItemButton, ListItemIcon, ListItemText, useMediaQuery, useTheme, AppBar, Toolbar, IconButton, Typography } from '@mui/material';
+import {
+  AppBar,
+  Box,
+  Drawer,
+  IconButton,
+  List,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Toolbar,
+  Typography,
+  useMediaQuery,
+  useTheme,
+} from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import MusicNoteIcon from '@mui/icons-material/MusicNote';
@@ -9,57 +22,81 @@ import GroupIcon from '@mui/icons-material/Group';
 import PersonIcon from '@mui/icons-material/Person';
 import SettingsIcon from '@mui/icons-material/Settings';
 import LogoutIcon from '@mui/icons-material/Logout';
-import { useRouter, usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { signOut } from 'next-auth/react';
+import { BLACK, ELEVATED, MUTED, ORANGE } from '@/lib/theme';
 
-interface AdminLayoutProps {
-  children: React.ReactNode;
-}
+const DRAWER_WIDTH = 250;
 
-export function AdminLayout({ children }: AdminLayoutProps) {
+const menuItems = [
+  { label: 'Dashboard', icon: DashboardIcon, href: '/admin' },
+  { label: 'Músicas', icon: MusicNoteIcon, href: '/admin/musicas' },
+  { label: 'Tribos', icon: GroupIcon, href: '/admin/tribos' },
+  { label: 'Usuários', icon: PersonIcon, href: '/admin/usuarios' },
+  { label: 'Config', icon: SettingsIcon, href: '/admin/settings' },
+];
+
+export function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const menuItems = [
-    { label: 'Dashboard', icon: DashboardIcon, href: '/admin' },
-    { label: 'Músicas', icon: MusicNoteIcon, href: '/admin/musicas' },
-    { label: 'Tribos', icon: GroupIcon, href: '/admin/tribos' },
-    { label: 'Usuários', icon: PersonIcon, href: '/admin/usuarios' },
-    { label: 'Config', icon: SettingsIcon, href: '/admin/settings' },
-  ];
-
   const drawer = (
-    <Box sx={{ width: 250 }}>
-      <Box sx={{ p: 2 }}>
-        <Typography variant="h6" sx={{ fontWeight: 700 }}>
-          🎵 Biblioteca
+    <Box sx={{ width: DRAWER_WIDTH, height: '100%', background: ELEVATED, display: 'flex', flexDirection: 'column' }}>
+      <Box sx={{ p: 2.5, display: 'flex', alignItems: 'center', gap: 1.2 }}>
+        <Box
+          sx={{
+            width: 32,
+            height: 32,
+            borderRadius: '50%',
+            background: `linear-gradient(135deg, ${ORANGE}, #9a3a00)`,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontWeight: 800,
+            color: '#000',
+          }}
+        >
+          ♪
+        </Box>
+        <Typography variant="h6" sx={{ fontWeight: 800, fontSize: 16 }}>
+          Música
         </Typography>
       </Box>
-      <List>
-        {menuItems.map((item) => (
-          <ListItemButton
-            key={item.href}
-            onClick={() => {
-              router.push(item.href as never);
-              setMobileOpen(false);
-            }}
-            selected={pathname === item.href}
-            sx={{ backgroundColor: pathname === item.href ? 'rgba(25,118,210,0.2)' : 'transparent' }}
-          >
-            <ListItemIcon>
-              <item.icon />
-            </ListItemIcon>
-            <ListItemText primary={item.label} />
-          </ListItemButton>
-        ))}
+      <List sx={{ flex: 1 }}>
+        {menuItems.map((item) => {
+          const active = pathname === item.href;
+          return (
+            <ListItemButton
+              key={item.href}
+              onClick={() => {
+                router.push(item.href as never);
+                setMobileOpen(false);
+              }}
+              selected={active}
+              sx={{
+                mx: 1,
+                borderRadius: 1.5,
+                color: active ? '#fff' : MUTED,
+                backgroundColor: active ? 'rgba(255,107,0,0.16)' : 'transparent',
+                '&.Mui-selected': { backgroundColor: 'rgba(255,107,0,0.16)' },
+                '&:hover': { background: 'rgba(255,255,255,0.06)', color: '#fff' },
+              }}
+            >
+              <ListItemIcon sx={{ minWidth: 40, color: active ? ORANGE : 'inherit' }}>
+                <item.icon />
+              </ListItemIcon>
+              <ListItemText primary={item.label} primaryTypographyProps={{ fontWeight: active ? 700 : 600 }} />
+            </ListItemButton>
+          );
+        })}
         <ListItemButton
           onClick={() => signOut({ redirect: true, callbackUrl: '/login' })}
-          sx={{ mt: 2, color: 'error.main' }}
+          sx={{ mt: 2, mx: 1, borderRadius: 1.5, color: '#ef5350' }}
         >
-          <ListItemIcon>
+          <ListItemIcon sx={{ minWidth: 40, color: 'inherit' }}>
             <LogoutIcon />
           </ListItemIcon>
           <ListItemText primary="Sair" />
@@ -69,22 +106,41 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   );
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh' }}>
+    <Box sx={{ display: 'flex', minHeight: '100dvh', background: BLACK, width: '100%', overflowX: 'hidden' }}>
       {!isMobile && (
-        <Drawer variant="permanent" sx={{ width: 250, '& .MuiDrawer-paper': { width: 250 } }}>
+        <Drawer
+          variant="permanent"
+          sx={{
+            width: DRAWER_WIDTH,
+            flexShrink: 0,
+            '& .MuiDrawer-paper': {
+              width: DRAWER_WIDTH,
+              background: ELEVATED,
+              borderRight: '1px solid rgba(255,255,255,0.06)',
+              boxSizing: 'border-box',
+            },
+          }}
+        >
           {drawer}
         </Drawer>
       )}
 
       {isMobile && (
         <>
-          <AppBar position="fixed" sx={{ zIndex: 1201 }}>
-            <Toolbar>
-              <IconButton color="inherit" onClick={() => setMobileOpen(true)} sx={{ mr: 2 }}>
+          <AppBar
+            position="fixed"
+            sx={{
+              zIndex: 1201,
+              background: BLACK,
+              pt: 'env(safe-area-inset-top, 0px)',
+            }}
+          >
+            <Toolbar sx={{ minHeight: { xs: 56, sm: 64 } }}>
+              <IconButton color="inherit" onClick={() => setMobileOpen(true)} sx={{ mr: 1.5 }} aria-label="Abrir menu">
                 <MenuIcon />
               </IconButton>
-              <Typography variant="h6" sx={{ flex: 1, fontWeight: 700 }}>
-                Biblioteca Admin
+              <Typography variant="h6" sx={{ flex: 1, fontWeight: 800, fontSize: { xs: 16, sm: 20 } }} noWrap>
+                Admin
               </Typography>
             </Toolbar>
           </AppBar>
@@ -93,15 +149,26 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             anchor="left"
             open={mobileOpen}
             onClose={() => setMobileOpen(false)}
-            sx={{ '& .MuiDrawer-paper': { width: 250 } }}
+            ModalProps={{ keepMounted: true }}
+            sx={{ '& .MuiDrawer-paper': { width: DRAWER_WIDTH, background: ELEVATED } }}
           >
             {drawer}
           </Drawer>
         </>
       )}
 
-      <Box sx={{ flex: 1, overflow: 'auto' }}>
-        {isMobile && <Box sx={{ height: 64 }} />}
+      <Box
+        component="main"
+        sx={{
+          flex: 1,
+          minWidth: 0,
+          width: '100%',
+          overflowX: 'hidden',
+          overflowY: 'auto',
+          background: '#121212',
+          pt: isMobile ? 'calc(56px + env(safe-area-inset-top, 0px))' : 0,
+        }}
+      >
         {children}
       </Box>
     </Box>

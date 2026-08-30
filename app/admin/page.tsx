@@ -1,14 +1,15 @@
 'use client';
 
 import React from 'react';
-import { Box, Stack, Card, CardContent, Typography, Grid, CircularProgress, Alert } from '@mui/material';
+import { Box, Stack, Card, CardContent, Typography, Grid, CircularProgress } from '@mui/material';
 import MusicNoteIcon from '@mui/icons-material/MusicNote';
 import GroupIcon from '@mui/icons-material/Group';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import { AdminLayout } from '@/components/layout/AdminLayout';
+import { AdminPage } from '@/components/admin/AdminPage';
 import { useMusicas, useTribos } from '@/hooks/useApi';
 
-export default function AdminPage() {
+export default function DashboardPage() {
   const { data: musicas, isLoading: musicasLoading } = useMusicas();
   const { data: tribos, isLoading: tribosLoading } = useTribos();
 
@@ -17,7 +18,7 @@ export default function AdminPage() {
   const totalYears = musicas ? new Set(musicas.map((m) => m.ano)).size : 0;
 
   const StatCard = ({ title, value, icon: Icon, color }: any) => (
-    <Card sx={{ background: 'rgba(25,118,210,0.1)', border: '1px solid rgba(25,118,210,0.3)' }}>
+    <Card sx={{ background: 'rgba(255,107,0,0.1)', border: '1px solid rgba(255,107,0,0.28)' }}>
       <CardContent>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <Box>
@@ -36,11 +37,7 @@ export default function AdminPage() {
 
   return (
     <AdminLayout>
-      <Box sx={{ padding: '32px 24px', maxWidth: 1200, margin: '0 auto' }}>
-        <Typography variant="h4" sx={{ mb: 4, fontWeight: 700 }}>
-          Dashboard
-        </Typography>
-
+      <AdminPage title="Dashboard">
         {musicasLoading || tribosLoading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
             <CircularProgress />
@@ -53,7 +50,7 @@ export default function AdminPage() {
                   title="Total de Músicas"
                   value={totalMusicas}
                   icon={MusicNoteIcon}
-                  color="#1976d2"
+                  color="#FF6B00"
                 />
               </Grid>
               <Grid item xs={12} sm={6} md={4}>
@@ -89,7 +86,7 @@ export default function AdminPage() {
                         {musica.nome}
                       </Typography>
                       <Typography variant="caption" sx={{ color: '#999' }}>
-                        {musica.tribo?.nome} • {musica.ano}
+                        {musica.tribo?.nome} • {musica.ano} • {musica.plays || 0} plays
                       </Typography>
                     </Card>
                   ))}
@@ -97,7 +94,7 @@ export default function AdminPage() {
             </Box>
           </Stack>
         )}
-      </Box>
+      </AdminPage>
     </AdminLayout>
   );
 }

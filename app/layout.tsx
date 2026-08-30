@@ -1,20 +1,21 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter } from 'next/font/google';
 import { Providers } from '@/lib/providers';
-import { Player } from '@/components/player/Player';
-import { BottomNav } from '@/components/layout/BottomNav';
+import { AppShell } from '@/components/layout/AppShell';
+import { APP_NAME } from '@/lib/appInfo';
 import './globals.css';
 
-const inter = Inter({ subsets: ['latin'] });
-
 export const metadata: Metadata = {
-  title: 'Biblioteca Musical',
-  description: 'Biblioteca Musical da Igreja - músicas e paródias',
+  title: APP_NAME,
+  description: `${APP_NAME} — aplicativo de músicas e paródias`,
   manifest: '/manifest.json',
 };
 
 export const viewport: Viewport = {
-  themeColor: '#1976d2',
+  themeColor: '#000000',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  viewportFit: 'cover',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -24,13 +25,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="Biblioteca Musical" />
+        <meta name="apple-mobile-web-app-title" content={APP_NAME} />
+        <link rel="apple-touch-icon" href="/apple-icon" />
       </head>
-      <body className={inter.className}>
+      <body>
         <Providers>
-          {children}
-          <Player />
-          <BottomNav />
+          <AppShell>{children}</AppShell>
         </Providers>
       </body>
     </html>

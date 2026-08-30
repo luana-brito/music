@@ -1,52 +1,70 @@
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
-import { put } from '@vercel/blob';
+import { requireAdmin } from '@/lib/requireAdmin';
+import { uploadErrorMessage, uploadPublicBlob, audioBlobPath, AUDIO_MPEG } from '@/lib/blobUpload';
+
+export const maxDuration = 60;
 
 const UPLOAD_DIR = join(process.cwd(), 'public', 'musicas');
 
 export async function POST(req: NextRequest) {
   try {
-    // Verificar autenticação
-    const session = await getServerSession(authOptions);
-    if (!session || session.user?.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const { error } = await requireAdmin();
+    if (error) return error;
+
+    const contentType = req.headers.get('content-type') || '';
+    const isMultipart = contentType.includes('multipart/form-data');
+
+    let filename = '';
+    let mimeType = '';
+    let fileBuffer: Buffer;
+
+    if (isMultipart) {
+      const formData = await req.formData();
+      const file = formData.get('file') as File | null;
+
+      if (!file) {
+        return NextResponse.json({ error: 'No file provided' }, { status: 400 });
+      }
+
+      filename = file.name;
+      mimeType = file.type || contentType;
+      fileBuffer = Buffer.from(await file.arrayBuffer());
+    } else {
+      const rawFilename = req.nextUrl.searchParams.get('filename');
+      if (!rawFilename) {
+        return NextResponse.json({ error: 'Missing filename query param' }, { status: 400 });
+      }
+
+      filename = rawFilename;
+      mimeType = contentType;
+      fileBuffer = Buffer.from(await req.arrayBuffer());
+
+      if (!fileBuffer.length) {
+        return NextResponse.json({ error: 'No file body provided' }, { status: 400 });
+      }
     }
 
-    const formData = await req.formData();
-    const file = formData.get('file') as File;
-
-    if (!file) {
-      return NextResponse.json({ error: 'No file provided' }, { status: 400 });
-    }
-
-    // Validar tipo/extensão para MP3/MPEG.
-    const fileName = file.name.toLowerCase();
-    const isValidExtension = fileName.endsWith('.mp3') || fileName.endsWith('.mpeg');
+    const lowerFilename = filename.toLowerCase();
+    const isValidExtension = lowerFilename.endsWith('.mp3') || lowerFilename.endsWith('.mpeg');
     const isValidMime =
-      file.type === 'audio/mpeg' ||
-      file.type === 'audio/mp3' ||
-      file.type === 'audio/x-mpeg' ||
-      file.type === 'video/mpeg';
+      mimeType === 'audio/mpeg' ||
+      mimeType === 'audio/mp3' ||
+      mimeType === 'audio/x-mpeg' ||
+      mimeType === 'video/mpeg';
 
     if (!isValidExtension && !isValidMime) {
       return NextResponse.json({ error: 'Apenas arquivos MP3/MPEG são permitidos' }, { status: 400 });
     }
 
-    const token = process.env.BLOB_READ_WRITE_TOKEN || process.env.VERCEL_BLOB_TOKEN;
-    const timestamp = Date.now();
-    const filename = `${timestamp}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+    const pathname = audioBlobPath(filename);
+    const safeName = pathname.split('/').pop() || `${Date.now()}.mp3`;
+    const hasBlobToken = Boolean(process.env.BLOB_READ_WRITE_TOKEN || process.env.BLOB_STORE_ID);
 
-    if (token) {
-      const blob = await put(`musicas/${filename}`, file, {
-        access: 'public',
-        token,
-        contentType: file.type || 'audio/mpeg',
-      });
-
-      return NextResponse.json({ url: blob.url, filename });
+    if (hasBlobToken || process.env.VERCEL) {
+      const blob = await uploadPublicBlob(pathname, fileBuffer, AUDIO_MPEG);
+      return NextResponse.json({ url: blob.url, filename: safeName });
     }
 
     if (process.env.NODE_ENV === 'production') {
@@ -56,19 +74,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Fallback local para desenvolvimento sem token do Blob.
     await mkdir(UPLOAD_DIR, { recursive: true });
-    const filepath = join(UPLOAD_DIR, filename);
-
-    // Salvar arquivo
-    const bytes = await file.arrayBuffer();
-    await writeFile(filepath, Buffer.from(bytes));
-
-    const url = `/musicas/${filename}`;
-
-    return NextResponse.json({ url, filename });
+    await writeFile(join(UPLOAD_DIR, safeName), fileBuffer);
+    return NextResponse.json({ url: `/musicas/${safeName}`, filename: safeName });
   } catch (error) {
     console.error('Upload error:', error);
-    return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
+    return NextResponse.json({ error: uploadErrorMessage(error, 'Upload failed') }, { status: 500 });
   }
 }

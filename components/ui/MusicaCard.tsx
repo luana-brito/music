@@ -1,51 +1,129 @@
 'use client';
 
 import React from 'react';
-import { Box, Card, CardContent, IconButton, Typography, Stack } from '@mui/material';
+import { Box, Card, IconButton, Typography, Stack } from '@mui/material';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import PlaylistAddIcon from '@mui/icons-material/PlaylistAdd';
+import CloseIcon from '@mui/icons-material/Close';
 import { Musica } from '@/types';
+import { CoverArt } from '@/components/ui/CoverArt';
+import { HOVER, MUTED, ORANGE } from '@/lib/theme';
+import { getCapaUrl } from '@/lib/capa';
+import { formatDuration } from '@/lib/format';
 
 interface MusicaCardProps {
   musica: Musica;
   onPlay: (musica: Musica) => void;
+  onAdd?: (musica: Musica) => void;
+  onRemove?: (musica: Musica) => void;
   isPlaying?: boolean;
+  isPaused?: boolean;
+  index?: number;
 }
 
-export function MusicaCard({ musica, onPlay, isPlaying }: MusicaCardProps) {
+export function MusicaCard({ musica, onPlay, onAdd, onRemove, isPlaying, isPaused, index }: MusicaCardProps) {
+  const active = Boolean(isPlaying || isPaused);
+
   return (
     <Card
+      onClick={() => onPlay(musica)}
       sx={{
-        background: isPlaying ? 'rgba(25,118,210,0.2)' : 'rgba(255,255,255,0.05)',
-        backdropFilter: 'blur(10px)',
-        border: isPlaying ? '2px solid #1976d2' : '1px solid rgba(255,255,255,0.1)',
-        transition: 'all 0.2s ease',
+        background: active ? 'rgba(255,107,0,0.12)' : 'transparent',
+        boxShadow: 'none',
+        borderRadius: 1,
+        cursor: 'pointer',
+        transition: 'background 0.15s ease',
         '&:hover': {
-          background: 'rgba(25,118,210,0.15)',
-          border: '1px solid rgba(25,118,210,0.5)',
+          background: HOVER,
+          '& .play-on-hover': { opacity: 1 },
+          '& .index-number': { opacity: 0 },
         },
       }}
     >
-      <CardContent sx={{ padding: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1 }}>
-        <Stack flex={1} spacing={0.5}>
-          <Typography variant="subtitle2" sx={{ fontWeight: 600, color: isPlaying ? '#1976d2' : '#fff' }} noWrap>
-            {musica.nome}
-          </Typography>
-          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-            <Typography variant="caption" sx={{ color: '#999' }}>
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '28px 1fr auto', md: '40px 1fr 160px 72px 56px 40px' },
+          alignItems: 'center',
+          gap: 1.5,
+          px: 1.5,
+          py: 0.8,
+        }}
+      >
+        <Box sx={{ position: 'relative', height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {active && isPlaying ? (
+            <Box sx={{ display: 'flex', gap: '2px', height: 14, alignItems: 'flex-end' }}>
+              {[0, 1, 2].map((i) => (
+                <Box
+                  key={i}
+                  sx={{
+                    width: 3,
+                    bgcolor: ORANGE,
+                    animation: 'eq 0.8s ease-in-out infinite',
+                    animationDelay: `${i * 0.15}s`,
+                    '@keyframes eq': {
+                      '0%, 100%': { height: 4 },
+                      '50%': { height: 14 },
+                    },
+                  }}
+                />
+              ))}
+            </Box>
+          ) : (
+            <>
+              <Typography className="index-number" sx={{ color: active ? ORANGE : MUTED, fontSize: 14, fontWeight: 600 }}>
+                {index ?? ''}
+              </Typography>
+              <PlayArrowIcon
+                className="play-on-hover"
+                sx={{
+                  position: 'absolute',
+                  fontSize: 22,
+                  color: '#fff',
+                  opacity: 0,
+                  transition: 'opacity 0.15s',
+                }}
+              />
+            </>
+          )}
+        </Box>
+
+        <Stack direction="row" spacing={1.5} alignItems="center" minWidth={0}>
+          <CoverArt name={musica.nome} color={musica.tribo?.cor} src={getCapaUrl(musica)} size={40} />
+          <Box minWidth={0}>
+            <Typography noWrap sx={{ fontWeight: 600, fontSize: 15, color: active ? ORANGE : '#fff' }}>
+              {musica.nome}
+            </Typography>
+            <Typography noWrap variant="caption" sx={{ color: MUTED, display: { xs: 'block', md: 'none' } }}>
               {musica.tribo?.nome}
-            </Typography>
-            <Typography variant="caption" sx={{ color: '#666' }}>
-              •
-            </Typography>
-            <Typography variant="caption" sx={{ color: '#999' }}>
-              {Math.floor(musica.duracao / 60)}:{(musica.duracao % 60).toString().padStart(2, '0')}
             </Typography>
           </Box>
         </Stack>
-        <IconButton onClick={() => onPlay(musica)} size="small" sx={{ color: isPlaying ? '#1976d2' : 'inherit' }}>
-          <PlayArrowIcon />
-        </IconButton>
-      </CardContent>
+
+        <Typography noWrap sx={{ color: MUTED, fontSize: 14, display: { xs: 'none', md: 'block' } }}>
+          {musica.tribo?.nome}
+        </Typography>
+
+        <Typography sx={{ color: MUTED, fontSize: 14, display: { xs: 'none', md: 'block' }, textAlign: 'right' }}>
+          {musica.ano}
+        </Typography>
+
+        <Typography sx={{ color: MUTED, fontSize: 13, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
+          {formatDuration(musica.duracao)}
+        </Typography>
+        <Box onClick={(event) => event.stopPropagation()} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+          {onAdd && (
+            <IconButton size="small" aria-label="Adicionar à playlist" onClick={() => onAdd(musica)} sx={{ color: MUTED }}>
+              <PlaylistAddIcon fontSize="small" />
+            </IconButton>
+          )}
+          {onRemove && (
+            <IconButton size="small" aria-label="Remover" onClick={() => onRemove(musica)} sx={{ color: MUTED }}>
+              <CloseIcon fontSize="small" />
+            </IconButton>
+          )}
+        </Box>
+      </Box>
     </Card>
   );
 }

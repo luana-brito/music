@@ -1,43 +1,58 @@
 'use client';
 
 import React from 'react';
-import { Box, BottomNavigation, BottomNavigationAction, useMediaQuery, useTheme } from '@mui/material';
+import { Box, BottomNavigation, BottomNavigationAction } from '@mui/material';
 import HomeIcon from '@mui/icons-material/Home';
 import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
-import SettingsIcon from '@mui/icons-material/Settings';
-import { useRouter, usePathname } from 'next/navigation';
+import LibraryMusicIcon from '@mui/icons-material/LibraryMusic';
+import QueueMusicIcon from '@mui/icons-material/QueueMusic';
+import { usePathname, useRouter } from 'next/navigation';
+import { BLACK, MUTED, ORANGE } from '@/lib/theme';
+import { navValueFromPath } from '@/lib/nav';
 
 export function BottomNav() {
   const router = useRouter();
   const pathname = usePathname();
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-
-  if (!isMobile) return null;
-
-  const currentValue = pathname === '/' ? 'home' : pathname.includes('downloads') ? 'downloads' : pathname.includes('settings') ? 'settings' : 'home';
 
   return (
-    <BottomNavigation
-      value={currentValue}
-      onChange={(event, value) => {
-        if (value === 'home') router.push('/');
-        if (value === 'downloads') router.push('/downloads');
-        if (value === 'settings') router.push('/settings');
-      }}
+    <Box
       sx={{
+        display: { xs: 'block', md: 'none' },
         position: 'fixed',
-        bottom: 280,
+        bottom: 0,
         left: 0,
         right: 0,
-        background: 'linear-gradient(to top, rgba(0,0,0,0.95), rgba(25,118,210,0.1))',
-        backdropFilter: 'blur(10px)',
-        borderTop: '1px solid rgba(255,255,255,0.1)',
+        zIndex: 1200,
       }}
     >
-      <BottomNavigationAction label="Início" value="home" icon={<HomeIcon />} />
-      <BottomNavigationAction label="Downloads" value="downloads" icon={<CloudDownloadIcon />} />
-      <BottomNavigationAction label="Config" value="settings" icon={<SettingsIcon />} />
-    </BottomNavigation>
+      <BottomNavigation
+        value={navValueFromPath(pathname)}
+        showLabels
+        onChange={(_, value) => {
+          if (value === 'home') router.push('/' as never);
+          if (value === 'downloads') router.push('/downloads' as never);
+          if (value === 'biblioteca') router.push('/biblioteca' as never);
+          if (value === 'playlists') router.push('/playlists' as never);
+        }}
+        sx={{
+          background: BLACK,
+          borderTop: '1px solid rgba(255,255,255,0.08)',
+          height: 64,
+          paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+          '& .MuiBottomNavigationAction-root': {
+            color: MUTED,
+            minWidth: 0,
+          },
+          '& .Mui-selected': {
+            color: `${ORANGE} !important`,
+          },
+        }}
+      >
+        <BottomNavigationAction label="Início" value="home" icon={<HomeIcon />} />
+        <BottomNavigationAction label="Downloads" value="downloads" icon={<CloudDownloadIcon />} />
+        <BottomNavigationAction label="Biblioteca" value="biblioteca" icon={<LibraryMusicIcon />} />
+        <BottomNavigationAction label="Playlists" value="playlists" icon={<QueueMusicIcon />} />
+      </BottomNavigation>
+    </Box>
   );
 }

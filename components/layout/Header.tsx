@@ -1,128 +1,104 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Box, InputBase, IconButton, Stack, Chip, useMediaQuery, useTheme } from '@mui/material';
+import React from 'react';
+import { Box, IconButton, InputBase } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
+import { useSession } from 'next-auth/react';
+import { MUTED } from '@/lib/theme';
 
 interface HeaderProps {
+  title?: string;
+  searchQuery?: string;
   onSearch?: (query: string) => void;
-  onFilterYear?: (year: number | null) => void;
-  onFilterTribo?: (triboId: string | null) => void;
-  years?: number[];
-  tribos?: Array<{ id: string; nome: string; cor: string }>;
+  searchPlaceholder?: string;
 }
 
-export function Header({ onSearch, onFilterYear, onFilterTribo, years = [], tribos = [] }: HeaderProps) {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedYear, setSelectedYear] = useState<number | null>(null);
-  const [selectedTribo, setSelectedTribo] = useState<string | null>(null);
-
-  const handleSearch = (value: string) => {
-    setSearchQuery(value);
-    onSearch?.(value);
-  };
-
-  const handleYearFilter = (year: number) => {
-    const newYear = selectedYear === year ? null : year;
-    setSelectedYear(newYear);
-    onFilterYear?.(newYear);
-  };
-
-  const handleTriboFilter = (triboId: string) => {
-    const newTribo = selectedTribo === triboId ? null : triboId;
-    setSelectedTribo(newTribo);
-    onFilterTribo?.(newTribo);
-  };
+export function Header({ title, searchQuery = '', onSearch, searchPlaceholder = 'Buscar na biblioteca' }: HeaderProps) {
+  const { data: session } = useSession();
+  const adminHref = session?.user?.role === 'ADMIN' ? '/admin' : '/login';
 
   return (
     <Box
       sx={{
-        background: 'linear-gradient(135deg, rgba(25,118,210,0.1), rgba(0,0,0,0.3))',
-        backdropFilter: 'blur(10px)',
-        borderBottom: '1px solid rgba(255,255,255,0.1)',
-        padding: '12px 16px',
         position: 'sticky',
         top: 0,
-        zIndex: 100,
+        zIndex: 20,
+        background: 'linear-gradient(180deg, rgba(0,0,0,0.78) 0%, rgba(18,18,18,0.92) 100%)',
+        backdropFilter: 'blur(16px)',
+        px: { xs: 2, md: 4 },
+        pt: { xs: 1.5, md: 2 },
+        pb: 2,
       }}
     >
-      <Stack spacing={1}>
-        {/* Logo and title */}
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <h2 style={{ margin: 0, fontSize: isMobile ? '18px' : '24px' }}>🎵 Biblioteca</h2>
-        </Box>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2, mb: onSearch || title ? 1.5 : 0 }}>
+        <IconButton
+          href={adminHref}
+          component="a"
+          aria-label={session?.user?.role === 'ADMIN' ? 'Abrir admin' : 'Entrar no admin'}
+          sx={{
+            color: '#fff',
+            background: 'rgba(255,255,255,0.08)',
+            width: 40,
+            height: 40,
+            '&:hover': { background: 'rgba(255,255,255,0.14)' },
+          }}
+        >
+          <AdminPanelSettingsIcon />
+        </IconButton>
+        {title && (
+          <Box
+            sx={{
+              fontWeight: 800,
+              fontSize: { xs: 22, md: 28 },
+              letterSpacing: '-0.03em',
+              flex: 1,
+              minWidth: 0,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {title}
+          </Box>
+        )}
+      </Box>
 
-        {/* Search */}
+      {onSearch && (
         <Box
           sx={{
             display: 'flex',
             alignItems: 'center',
-            background: 'rgba(255,255,255,0.1)',
-            borderRadius: '24px',
-            paddingLeft: '12px',
-            border: '1px solid rgba(255,255,255,0.2)',
+            background: 'rgba(255,255,255,0.08)',
+            borderRadius: 999,
+            px: 1.5,
+            maxWidth: { xs: '100%', md: 420 },
+            width: '100%',
+            height: 44,
           }}
         >
-          <SearchIcon sx={{ color: '#999', fontSize: '20px' }} />
+          <SearchIcon sx={{ color: MUTED, fontSize: 22 }} />
           <InputBase
-            placeholder="Pesquisar..."
+            placeholder={searchPlaceholder}
             value={searchQuery}
-            onChange={(e) => handleSearch(e.target.value)}
+            onChange={(e) => onSearch(e.target.value)}
             sx={{
               flex: 1,
-              padding: '8px 12px',
+              px: 1.2,
               color: '#fff',
-              fontSize: isMobile ? '14px' : '16px',
-              '& ::placeholder': { color: '#999' },
+              fontSize: 14,
+              fontWeight: 600,
+              '& ::placeholder': { color: MUTED, opacity: 1 },
             }}
           />
           {searchQuery && (
-            <IconButton size="small" onClick={() => handleSearch('')}>
-              <ClearIcon sx={{ fontSize: '18px' }} />
+            <IconButton size="small" onClick={() => onSearch('')} aria-label="Limpar busca">
+              <ClearIcon sx={{ fontSize: 18, color: MUTED }} />
             </IconButton>
           )}
         </Box>
-
-        {/* Year filters */}
-        {years.length > 0 && (
-          <Box sx={{ display: 'flex', gap: 1, overflowX: 'auto', pb: 1 }}>
-            {years.map((year) => (
-              <Chip
-                key={year}
-                label={year.toString()}
-                onClick={() => handleYearFilter(year)}
-                variant={selectedYear === year ? 'filled' : 'outlined'}
-                sx={{
-                  backgroundColor: selectedYear === year ? '#1976d2' : 'transparent',
-                  cursor: 'pointer',
-                  minWidth: '60px',
-                }}
-              />
-            ))}
-          </Box>
-        )}
-
-        {/* Tribo filters */}
-        {tribos.length > 0 && (
-          <Box sx={{ display: 'flex', gap: 1, overflowX: 'auto', pb: 1 }}>
-            {tribos.map((tribo) => (
-              <Chip
-                key={tribo.id}
-                label={tribo.nome}
-                onClick={() => handleTriboFilter(tribo.id)}
-                variant={selectedTribo === tribo.id ? 'filled' : 'outlined'}
-                sx={{
-                  backgroundColor: selectedTribo === tribo.id ? tribo.cor : 'transparent',
-                  cursor: 'pointer',
-                }}
-              />
-            ))}
-          </Box>
-        )}
-      </Stack>
+      )}
     </Box>
   );
 }

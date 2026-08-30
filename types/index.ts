@@ -21,7 +21,9 @@ export interface Musica {
   nome: string;
   ano: number;
   blobUrl: string;
+  capa: string | null;
   duracao: number;
+  plays?: number;
   triboId: string;
   tribo?: Tribo;
   createdAt: Date;
@@ -37,7 +39,6 @@ export interface PlayerState {
   currentTrack: PlaylistItem | null;
   playlist: PlaylistItem[];
   isPlaying: boolean;
-  currentTime: number;
   volume: number;
   repeatMode: 'none' | 'one' | 'all';
   isShuffle: boolean;

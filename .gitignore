@@ -1,6 +1,7 @@
 node_modules
 .next
 out
+.vercel
 .env
 .env.local
 .env.development
@@ -8,3 +9,8 @@ out
 .env.production
 .DS_Store
 coverage
+public/imagens/*
+!public/imagens/.gitkeep
+public/musicas/*
+!public/musicas/.gitkeep
+

@@ -1,25 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '../../../lib/prisma';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { requireAdmin } from '@/lib/requireAdmin';
 
 const createTriboSchema = z.object({
   nome: z.string().min(1),
   cor: z.string().min(1),
-  logo: z.string().optional(),
+  logo: z.union([z.string().url(), z.string().regex(/^\/imagens\/.+$/)]).optional().nullable(),
 });
 
 export async function GET() {
-  const tribos = await prisma.tribo.findMany({ orderBy: { nome: 'asc' } });
-  return NextResponse.json(tribos);
+  try {
+    const tribos = await prisma.tribo.findMany({ orderBy: { nome: 'asc' } });
+    return NextResponse.json(tribos);
+  } catch (error) {
+    console.error('Erro ao listar tribos:', error);
+    return NextResponse.json({ error: 'Falha ao carregar tribos' }, { status: 500 });
+  }
 }
 
 export async function POST(request: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (!session || session.user?.role !== 'ADMIN') {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const { error } = await requireAdmin();
+  if (error) return error;
 
   const body = await request.json();
   const parse = createTriboSchema.safeParse(body);

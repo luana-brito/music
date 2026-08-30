@@ -1,91 +1,122 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Box, Stack, Typography, CircularProgress, Button, Alert } from '@mui/material';
+import { Alert, Box, Button, CircularProgress, Typography } from '@mui/material';
 import { Header } from '@/components/layout/Header';
-import { MusicaCard } from '@/components/ui/MusicaCard';
+import { FilterBar } from '@/components/catalog/FilterBar';
+import { TrackList } from '@/components/catalog/TrackList';
+import { useCatalogFilters } from '@/hooks/useCatalogFilters';
 import { usePlayer } from '@/hooks/usePlayer';
-import { Musica } from '@/types';
+import { useOnlineStatus } from '@/hooks/useOnlineStatus';
+import { useMusicas } from '@/hooks/useApi';
+import { uniqueYears } from '@/lib/catalog';
+import { listOfflineMusicas } from '@/lib/offlineDb';
+import { MUTED, ORANGE } from '@/lib/theme';
+import { Musica, Tribo } from '@/types';
 
 export default function DownloadsPage() {
   const [offlineMusicas, setOfflineMusicas] = useState<Musica[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { play } = usePlayer();
+  const [saving, setSaving] = useState(false);
+  const { play, state, downloadOffline, removeOffline } = usePlayer();
+  const { data: catalog } = useMusicas();
+  const online = useOnlineStatus();
+  const filters = useCatalogFilters(offlineMusicas);
 
-  useEffect(() => {
-    const loadOfflineMusicas = async () => {
-      try {
-        const dbRequest = indexedDB.open('BibliotecaMusical', 1);
-        dbRequest.onsuccess = () => {
-          const db = dbRequest.result;
-          const tx = db.transaction('musicas', 'readonly');
-          const store = tx.objectStore('musicas');
-          const allRecords: Musica[] = [];
+  const tribos = Array.from(
+    new Map(
+      offlineMusicas
+        .map((musica) => musica.tribo)
+        .filter((tribo): tribo is Tribo => Boolean(tribo))
+        .map((tribo) => [tribo.id, tribo])
+    ).values()
+  );
 
-          store.openCursor().onsuccess = (event: any) => {
-            const cursor = event.target.result;
-            if (cursor) {
-              allRecords.push(cursor.value.metadata);
-              cursor.continue();
-            } else {
-              setOfflineMusicas(allRecords);
-              setIsLoading(false);
-            }
-          };
-        };
-      } catch (error) {
-        console.error('Erro ao carregar músicas offline:', error);
-        setIsLoading(false);
-      }
-    };
-
-    loadOfflineMusicas();
-  }, []);
-
-  const handlePlayMusica = (musica: Musica) => {
-    const playlist = offlineMusicas.map((m) => ({ musica: m, isOffline: true }));
-    const startIndex = playlist.findIndex((item) => item.musica.id === musica.id);
-    play(playlist, startIndex >= 0 ? startIndex : 0);
+  const reload = async () => {
+    const records = await listOfflineMusicas();
+    setOfflineMusicas(records);
   };
 
-  const handleClearAll = () => {
-    if (confirm('Deseja remover todas as músicas baixadas?')) {
-      const dbRequest = indexedDB.open('BibliotecaMusical', 1);
-      dbRequest.onsuccess = () => {
-        const db = dbRequest.result;
-        const tx = db.transaction('musicas', 'readwrite');
-        const store = tx.objectStore('musicas');
-        store.clear();
-        localStorage.removeItem('offlineMusicas');
-        setOfflineMusicas([]);
-      };
+  useEffect(() => {
+    reload().finally(() => setIsLoading(false));
+  }, []);
+
+  const handleSaveLibrary = async () => {
+    if (!catalog?.length) return;
+    setSaving(true);
+    try {
+      const missing = catalog.filter((musica) => !offlineMusicas.some((item) => item.id === musica.id));
+      for (const musica of missing) {
+        await downloadOffline(musica);
+      }
+      await reload();
+    } finally {
+      setSaving(false);
     }
   };
 
   return (
-    <Box sx={{ minHeight: '100vh', paddingBottom: '320px', background: 'linear-gradient(135deg, #0d0d0d 0%, #1a1a2e 100%)' }}>
-      <Header />
+    <Box sx={{ minHeight: '100%', background: 'linear-gradient(180deg, rgba(255,107,0,0.22) 0%, #121212 280px)' }}>
+      <Header
+        title="Downloads"
+        searchQuery={filters.searchQuery}
+        onSearch={offlineMusicas.length > 0 ? filters.setSearchQuery : undefined}
+        searchPlaceholder="Buscar downloads"
+      />
+      {offlineMusicas.length > 0 && (
+        <FilterBar
+          years={uniqueYears(offlineMusicas)}
+          tribos={tribos}
+          selectedYear={filters.selectedYear}
+          selectedTribo={filters.selectedTribo}
+          sort={filters.sort}
+          hasFilters={filters.hasFilters}
+          onYear={filters.setSelectedYear}
+          onTribo={filters.setSelectedTribo}
+          onSort={filters.setSort}
+          onClear={filters.clearFilters}
+        />
+      )}
 
-      <Box sx={{ padding: '16px', maxWidth: 760, margin: '0 auto' }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Typography variant="h5">Downloads</Typography>
-          {offlineMusicas.length > 0 && <Button variant="outlined" size="small" onClick={handleClearAll} color="error">
-            Limpar
-          </Button>}
+      <Box sx={{ px: { xs: 2, md: 4 }, pb: 4 }}>
+        {!online && (
+          <Alert severity="info" sx={{ mb: 2, background: 'rgba(255,107,0,0.12)', color: '#fff' }}>
+            Você está offline. Reproduzindo apenas as músicas baixadas.
+          </Alert>
+        )}
+
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, gap: 2, flexWrap: 'wrap' }}>
+          <Typography sx={{ color: MUTED, fontSize: 14 }}>
+            {offlineMusicas.length} {offlineMusicas.length === 1 ? 'música disponível' : 'músicas disponíveis'} offline
+          </Typography>
+          {online && (
+            <Button variant="contained" size="small" onClick={handleSaveLibrary} disabled={saving || !catalog?.length}>
+              {saving ? 'Salvando…' : 'Salvar biblioteca offline'}
+            </Button>
+          )}
         </Box>
 
         {isLoading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', padding: '40px 16px' }}>
-            <CircularProgress />
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+            <CircularProgress sx={{ color: ORANGE }} />
           </Box>
         ) : offlineMusicas.length === 0 ? (
-          <Alert severity="info">Nenhuma música disponível offline. Baixe músicas para reproduzir sem internet.</Alert>
+          <Alert severity="info" sx={{ background: 'rgba(255,107,0,0.12)', color: '#fff' }}>
+            Nenhuma música disponível offline. Use “Salvar biblioteca offline” para ouvir sem internet.
+          </Alert>
         ) : (
-          <Stack spacing={2}>
-            {offlineMusicas.map((m) => (
-              <MusicaCard key={m.id} musica={m} onPlay={handlePlayMusica} />
-            ))}
-          </Stack>
+          <TrackList
+            musicas={filters.filteredMusicas}
+            onPlay={(musica) => {
+              const playlist = filters.filteredMusicas.map((item) => ({ musica: item, isOffline: true }));
+              const startIndex = playlist.findIndex((item) => item.musica.id === musica.id);
+              play(playlist, startIndex >= 0 ? startIndex : 0);
+            }}
+            onRemove={async (musica) => {
+              await removeOffline(musica.id);
+              await reload();
+            }}
+          />
         )}
       </Box>
     </Box>

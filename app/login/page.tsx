@@ -1,14 +1,31 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Box, Card, TextField, Button, Typography, Alert, CircularProgress, Stack } from '@mui/material';
-import { useRouter } from 'next/navigation';
+import React, { Suspense, useState } from 'react';
+import { Alert, Box, Button, Card, CircularProgress, Stack, TextField, Typography } from '@mui/material';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
+import { BLACK, ELEVATED, MUTED, ORANGE } from '@/lib/theme';
+
+function safeCallbackUrl(value: string | null) {
+  if (!value || !value.startsWith('/') || value.startsWith('//') || value.includes('\\')) {
+    return '/admin';
+  }
+  return value;
+}
 
 export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
+  );
+}
+
+function LoginForm() {
   const router = useRouter();
-  const [email, setEmail] = useState('admin@igreja.com');
-  const [senha, setSenha] = useState('123456');
+  const searchParams = useSearchParams();
+  const [email, setEmail] = useState('');
+  const [senha, setSenha] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -18,18 +35,20 @@ export default function LoginPage() {
     setError('');
 
     try {
+      const callbackUrl = safeCallbackUrl(searchParams.get('callbackUrl'));
       const result = await signIn('credentials', {
-        email,
+        email: email.trim().toLowerCase(),
         senha,
         redirect: false,
+        callbackUrl,
       });
 
       if (result?.ok) {
-        router.push('/admin');
+        router.push(callbackUrl as never);
       } else {
         setError('Email ou senha inválidos.');
       }
-    } catch (err) {
+    } catch {
       setError('Erro na autenticação. Tente novamente.');
     } finally {
       setLoading(false);
@@ -43,7 +62,7 @@ export default function LoginPage() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'linear-gradient(135deg, #0d0d0d 0%, #1a1a2e 100%)',
+        background: `radial-gradient(circle at top, rgba(255,107,0,0.25), ${BLACK} 55%)`,
         padding: '16px',
       }}
     >
@@ -51,19 +70,35 @@ export default function LoginPage() {
         sx={{
           width: '100%',
           maxWidth: 420,
-          background: 'rgba(0,0,0,0.5)',
-          backdropFilter: 'blur(10px)',
-          border: '1px solid rgba(255,255,255,0.1)',
-          padding: '32px 24px',
+          background: ELEVATED,
+          border: '1px solid rgba(255,255,255,0.08)',
+          padding: { xs: '28px 20px', sm: '40px 28px' },
+          borderRadius: 3,
         }}
       >
         <Stack spacing={3}>
           <Box sx={{ textAlign: 'center' }}>
-            <Typography variant="h4" sx={{ mb: 1, fontWeight: 700 }}>
-              🎵
+            <Box
+              sx={{
+                width: 56,
+                height: 56,
+                borderRadius: '50%',
+                background: `linear-gradient(135deg, ${ORANGE}, #9a3a00)`,
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: 800,
+                fontSize: 26,
+                color: '#000',
+                mb: 1.5,
+              }}
+            >
+              ♪
+            </Box>
+            <Typography variant="h5" sx={{ fontWeight: 800 }}>
+              Entrar
             </Typography>
-            <Typography variant="h5">Admin</Typography>
-            <Typography variant="subtitle2" sx={{ color: '#999', mt: 1 }}>
+            <Typography variant="subtitle2" sx={{ color: MUTED, mt: 1 }}>
               Acesso à área administrativa
             </Typography>
           </Box>
@@ -78,9 +113,11 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 fullWidth
+                required
                 variant="outlined"
                 disabled={loading}
-                autoComplete="email"
+                autoComplete="username"
+                inputProps={{ maxLength: 180 }}
               />
 
               <TextField
@@ -89,28 +126,18 @@ export default function LoginPage() {
                 value={senha}
                 onChange={(e) => setSenha(e.target.value)}
                 fullWidth
+                required
                 variant="outlined"
                 disabled={loading}
                 autoComplete="current-password"
+                inputProps={{ maxLength: 120 }}
               />
 
-              <Button
-                type="submit"
-                variant="contained"
-                fullWidth
-                disabled={loading}
-                sx={{ py: 1.5, fontSize: '16px', fontWeight: 600 }}
-              >
-                {loading ? <CircularProgress size={24} /> : 'Entrar'}
+              <Button type="submit" variant="contained" fullWidth disabled={loading || !email || !senha} sx={{ py: 1.4, fontSize: 16 }}>
+                {loading ? <CircularProgress size={24} sx={{ color: '#000' }} /> : 'Entrar'}
               </Button>
             </Stack>
           </form>
-
-          <Typography variant="caption" sx={{ textAlign: 'center', color: '#666' }}>
-            Email de teste: admin@igreja.com
-            <br />
-            Senha de teste: 123456
-          </Typography>
         </Stack>
       </Card>
     </Box>
