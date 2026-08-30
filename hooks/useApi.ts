@@ -115,12 +115,81 @@ export function useCreateMusica() {
   });
 }
 
+export function useUpdateMusica() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      ...data
+    }: {
+      id: string;
+      nome: string;
+      ano: number;
+      blobUrl?: string;
+      capa?: string | null;
+      duracao?: number;
+      triboId: string;
+    }) => {
+      const { data: response } = await api.put<Musica>(`/musicas/${id}`, data);
+      return response;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['musicas'] });
+    },
+  });
+}
+
+export function useDeleteMusica() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      await api.delete(`/musicas/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['musicas'] });
+    },
+  });
+}
+
 export function useCreateUsuario() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (data: { nome: string; email: string; senha: string }) => {
       const { data: response } = await api.post('/usuarios', data);
       return response;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['usuarios'] });
+    },
+  });
+}
+
+export function useUpdateUsuario() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      ...data
+    }: {
+      id: string;
+      nome: string;
+      email: string;
+      senha?: string;
+    }) => {
+      const { data: response } = await api.put(`/usuarios/${id}`, data);
+      return response;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['usuarios'] });
+    },
+  });
+}
+
+export function useDeleteUsuario() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      await api.delete(`/usuarios/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['usuarios'] });

@@ -1,4 +1,4 @@
-import { put } from '@vercel/blob';
+import { del, put } from '@vercel/blob';
 
 export const AUDIO_MPEG = 'audio/mpeg';
 
@@ -19,6 +19,15 @@ export async function uploadPublicBlob(pathname: string, file: Buffer | File, co
     multipart: true,
     cacheControlMaxAge: 60 * 60 * 24 * 365,
   });
+}
+
+export async function deletePublicBlob(url?: string | null) {
+  if (!url || !/^https?:\/\//i.test(url)) return;
+  try {
+    await del(url);
+  } catch (error) {
+    console.error('Falha ao remover arquivo remoto:', error);
+  }
 }
 
 export function uploadErrorMessage(error: unknown, fallback: string) {
