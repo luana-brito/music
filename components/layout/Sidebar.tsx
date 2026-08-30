@@ -15,7 +15,7 @@ import { usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useUserPlaylists } from '@/hooks/useUserPlaylists';
 import { APP_DEVELOPER, APP_NAME, APP_VERSION } from '@/lib/appInfo';
-import { ELEVATED, MUTED, ORANGE } from '@/lib/theme';
+import { EASE, ELEVATED, MUTED, ORANGE } from '@/lib/theme';
 
 const navItems = [
   { label: 'Início', href: '/', icon: HomeOutlinedIcon, activeIcon: HomeIcon },
@@ -40,28 +40,40 @@ export function Sidebar() {
         height: '100%',
       }}
     >
-      <Box sx={{ background: ELEVATED, borderRadius: 2, px: 1.5, py: 1.6, display: 'flex', alignItems: 'center', gap: 1 }}>
+      <Box
+        sx={{
+          background: ELEVATED,
+          borderRadius: 2.4,
+          px: 1.5,
+          py: 1.6,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1.2,
+        }}
+      >
         <IconButton
           href={adminHref}
           component="a"
           aria-label="Admin"
           sx={{
-            width: 40,
-            height: 40,
+            width: 42,
+            height: 42,
             background: `linear-gradient(135deg, ${ORANGE}, #9a3a00)`,
             color: '#000',
-            '&:hover': { background: ORANGE },
+            '&:hover': { background: ORANGE, transform: 'scale(1.04)' },
           }}
         >
           <AdminPanelSettingsIcon />
         </IconButton>
         <Box minWidth={0}>
-          <Typography sx={{ fontWeight: 800, fontSize: 15, lineHeight: 1.1 }}>{APP_NAME}</Typography>
+          <Typography sx={{ fontWeight: 800, fontSize: 15, lineHeight: 1.1, letterSpacing: '-0.03em' }}>
+            {APP_NAME}
+          </Typography>
           <Typography sx={{ color: MUTED, fontSize: 12 }}>v{APP_VERSION}</Typography>
         </Box>
       </Box>
 
-      <Box sx={{ background: ELEVATED, borderRadius: 2, py: 1 }}>
+      <Box sx={{ background: ELEVATED, borderRadius: 2.4, py: 1 }}>
         <List disablePadding>
           {navItems.map((item) => {
             const active = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
@@ -73,12 +85,14 @@ export function Sidebar() {
                 href={item.href as never}
                 sx={{
                   mx: 1,
+                  my: 0.25,
                   borderRadius: 1.5,
                   color: active ? '#fff' : MUTED,
-                  '&:hover': { color: '#fff', background: 'rgba(255,255,255,0.06)' },
+                  background: active ? 'rgba(255,255,255,0.06)' : 'transparent',
+                  '&:hover': { color: '#fff', background: 'rgba(255,255,255,0.08)' },
                 }}
               >
-                <ListItemIcon sx={{ minWidth: 40, color: 'inherit' }}>
+                <ListItemIcon sx={{ minWidth: 40, color: active ? ORANGE : 'inherit' }}>
                   <Icon />
                 </ListItemIcon>
                 <ListItemText
@@ -91,8 +105,8 @@ export function Sidebar() {
         </List>
       </Box>
 
-      <Box sx={{ background: ELEVATED, borderRadius: 2, py: 1, flex: 1, overflow: 'auto' }}>
-        <Typography sx={{ px: 2, py: 1, color: MUTED, fontSize: 11, fontWeight: 700, letterSpacing: 0.8 }}>
+      <Box sx={{ background: ELEVATED, borderRadius: 2.4, py: 1, flex: 1, overflow: 'auto' }}>
+        <Typography sx={{ px: 2, py: 1, color: MUTED, fontSize: 11, fontWeight: 700, letterSpacing: 0.9 }}>
           SUAS PLAYLISTS
         </Typography>
         <List disablePadding>
@@ -112,7 +126,9 @@ export function Sidebar() {
                   mx: 1,
                   borderRadius: 1.5,
                   color: active ? '#fff' : MUTED,
-                  '&:hover': { color: '#fff', background: 'rgba(255,255,255,0.06)' },
+                  background: active ? 'rgba(255,255,255,0.06)' : 'transparent',
+                  transition: `background 0.2s ${EASE}, color 0.2s ${EASE}`,
+                  '&:hover': { color: '#fff', background: 'rgba(255,255,255,0.08)' },
                 }}
               >
                 <ListItemText

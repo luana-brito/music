@@ -7,7 +7,7 @@ import PlaylistAddIcon from '@mui/icons-material/PlaylistAdd';
 import CloseIcon from '@mui/icons-material/Close';
 import { Musica } from '@/types';
 import { CoverArt } from '@/components/ui/CoverArt';
-import { HOVER, MUTED, ORANGE } from '@/lib/theme';
+import { EASE, HOVER, MUTED, ORANGE } from '@/lib/theme';
 import { getCapaUrl } from '@/lib/capa';
 import { formatDuration } from '@/lib/format';
 
@@ -28,11 +28,11 @@ export function MusicaCard({ musica, onPlay, onAdd, onRemove, isPlaying, isPause
     <Card
       onClick={() => onPlay(musica)}
       sx={{
-        background: active ? 'rgba(255,107,0,0.12)' : 'transparent',
+        background: active ? 'rgba(255,107,0,0.1)' : 'transparent',
         boxShadow: 'none',
-        borderRadius: 1,
+        borderRadius: 1.6,
         cursor: 'pointer',
-        transition: 'background 0.15s ease',
+        transition: `background 0.18s ${EASE}`,
         '&:hover': {
           background: HOVER,
           '& .play-on-hover': { opacity: 1 },
@@ -47,7 +47,7 @@ export function MusicaCard({ musica, onPlay, onAdd, onRemove, isPlaying, isPause
           alignItems: 'center',
           gap: 1.5,
           px: 1.5,
-          py: 0.8,
+          py: 0.85,
         }}
       >
         <Box sx={{ position: 'relative', height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -81,7 +81,7 @@ export function MusicaCard({ musica, onPlay, onAdd, onRemove, isPlaying, isPause
                   fontSize: 22,
                   color: '#fff',
                   opacity: 0,
-                  transition: 'opacity 0.15s',
+                  transition: `opacity 0.15s ${EASE}`,
                 }}
               />
             </>
@@ -89,7 +89,7 @@ export function MusicaCard({ musica, onPlay, onAdd, onRemove, isPlaying, isPause
         </Box>
 
         <Stack direction="row" spacing={1.5} alignItems="center" minWidth={0}>
-          <CoverArt name={musica.nome} color={musica.tribo?.cor} src={getCapaUrl(musica)} size={40} />
+          <CoverArt name={musica.nome} color={musica.tribo?.cor} src={getCapaUrl(musica)} size={40} rounded={6} />
           <Box minWidth={0}>
             <Typography noWrap sx={{ fontWeight: 600, fontSize: 15, color: active ? ORANGE : '#fff' }}>
               {musica.nome}

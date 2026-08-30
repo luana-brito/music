@@ -9,12 +9,14 @@ import { Header } from '@/components/layout/Header';
 import { TrackList } from '@/components/catalog/TrackList';
 import { FilterBar } from '@/components/catalog/FilterBar';
 import { AddSongsToPlaylistDialog } from '@/components/catalog/AddSongsToPlaylistDialog';
+import { CoverArt } from '@/components/ui/CoverArt';
 import { useUserPlaylists } from '@/hooks/useUserPlaylists';
 import { useMusicas, useTribos } from '@/hooks/useApi';
 import { useCatalogFilters } from '@/hooks/useCatalogFilters';
 import { usePlayer } from '@/hooks/usePlayer';
 import { useOnlineStatus } from '@/hooks/useOnlineStatus';
-import { MUTED } from '@/lib/theme';
+import { MUTED, ORANGE, pageBg } from '@/lib/theme';
+import { getCapaUrl } from '@/lib/capa';
 import { PlaylistItem } from '@/types';
 
 export default function PlaylistDetailPage() {
@@ -73,14 +75,88 @@ export default function PlaylistDetailPage() {
     );
   }
 
+  const accent = tracks[0]?.tribo?.cor || ORANGE;
+
   return (
-    <Box sx={{ minHeight: '100%', background: 'linear-gradient(180deg, rgba(255,107,0,0.24) 0%, #121212 280px)' }}>
+    <Box sx={{ minHeight: '100%', background: pageBg(accent) }}>
       <Header
-        title={playlist.nome}
         searchQuery={filters.searchQuery}
         onSearch={tracks.length > 0 ? filters.setSearchQuery : undefined}
         searchPlaceholder="Buscar nesta playlist"
       />
+      <Box
+        sx={{
+          px: { xs: 2, md: 4 },
+          pb: 3,
+          display: 'flex',
+          gap: { xs: 2, md: 3.5 },
+          alignItems: { xs: 'center', md: 'flex-end' },
+          flexDirection: { xs: 'column', sm: 'row' },
+        }}
+      >
+        <Box sx={{ width: { xs: 180, md: 232 }, flexShrink: 0 }}>
+          <CoverArt
+            name={playlist.nome}
+            color={accent}
+            src={tracks[0] ? getCapaUrl(tracks[0]) : null}
+            size="100%"
+            rounded={12}
+          />
+        </Box>
+        <Box sx={{ minWidth: 0, width: '100%' }}>
+          <Typography sx={{ color: MUTED, fontSize: 12, fontWeight: 700, letterSpacing: 1.4 }}>PLAYLIST</Typography>
+          <Typography
+            sx={{
+              fontWeight: 800,
+              fontSize: { xs: 32, md: 56 },
+              letterSpacing: '-0.045em',
+              lineHeight: 1.05,
+              mt: 0.5,
+              mb: 1,
+            }}
+          >
+            {playlist.nome}
+          </Typography>
+          <Typography sx={{ color: MUTED, fontSize: 14, mb: 2 }}>
+            {filters.filteredMusicas.length} {filters.filteredMusicas.length === 1 ? 'música' : 'músicas'}
+            {tracks.length > 0 ? ` • ${tracks.length - missingOffline.length} offline` : ''}
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 1.2, flexWrap: 'wrap' }}>
+            <Button
+              variant="contained"
+              disabled={tracks.length === 0}
+              onClick={() => play(tracks.map((musica) => ({ musica })) as PlaylistItem[], 0)}
+              sx={{ px: 3, py: 1 }}
+            >
+              Tocar
+            </Button>
+            <Button variant="outlined" startIcon={<PlaylistAddIcon />} onClick={() => setAddOpen(true)}>
+              Adicionar músicas
+            </Button>
+            <Button
+              variant="outlined"
+              startIcon={<CloudDownloadIcon />}
+              onClick={handleDownload}
+              disabled={!online || downloading || missingOffline.length === 0}
+            >
+              {downloading
+                ? `Baixando ${downloadProgress}`
+                : missingOffline.length === 0 && tracks.length > 0
+                  ? 'Playlist baixada'
+                  : 'Baixar playlist'}
+            </Button>
+            <Button
+              color="error"
+              onClick={() => {
+                remove(playlist.id);
+                router.push('/playlists' as never);
+              }}
+            >
+              Excluir playlist
+            </Button>
+          </Box>
+        </Box>
+      </Box>
       {tracks.length > 0 && (
         <FilterBar
           years={filters.years}
@@ -96,43 +172,6 @@ export default function PlaylistDetailPage() {
         />
       )}
       <Box sx={{ px: { xs: 2, md: 4 }, pb: 4 }}>
-        <Box sx={{ display: 'flex', gap: 1.5, mb: 3, flexWrap: 'wrap' }}>
-          <Button
-            variant="contained"
-            disabled={tracks.length === 0}
-            onClick={() => play(tracks.map((musica) => ({ musica })) as PlaylistItem[], 0)}
-          >
-            Tocar
-          </Button>
-          <Button variant="outlined" startIcon={<PlaylistAddIcon />} onClick={() => setAddOpen(true)}>
-            Adicionar músicas
-          </Button>
-          <Button
-            variant="outlined"
-            startIcon={<CloudDownloadIcon />}
-            onClick={handleDownload}
-            disabled={!online || downloading || missingOffline.length === 0}
-          >
-            {downloading
-              ? `Baixando ${downloadProgress}`
-              : missingOffline.length === 0 && tracks.length > 0
-                ? 'Playlist baixada'
-                : 'Baixar playlist'}
-          </Button>
-          <Button
-            color="error"
-            onClick={() => {
-              remove(playlist.id);
-              router.push('/playlists' as never);
-            }}
-          >
-            Excluir playlist
-          </Button>
-        </Box>
-        <Typography sx={{ color: MUTED, mb: 2, fontSize: 14 }}>
-          {filters.filteredMusicas.length} {filters.filteredMusicas.length === 1 ? 'música' : 'músicas'}
-          {tracks.length > 0 ? ` • ${tracks.length - missingOffline.length} offline` : ''}
-        </Typography>
         <TrackList
           musicas={filters.filteredMusicas}
           onPlay={(musica) => {

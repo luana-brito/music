@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Box, Stack, Typography, Button, Switch, FormControlLabel, Alert, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import { Header } from '@/components/layout/Header';
-import { MUTED } from '@/lib/theme';
+import { MUTED, pageBg } from '@/lib/theme';
 import { APP_DEVELOPER, APP_NAME, APP_VERSION } from '@/lib/appInfo';
 import { InstallPwaCard } from '@/components/ui/InstallPwaCard';
 import { useSession } from 'next-auth/react';
@@ -29,16 +29,17 @@ export default function SettingsPage() {
   };
 
   const cardSx = {
-    background: 'rgba(255,255,255,0.06)',
+    background: 'rgba(255,255,255,0.045)',
     p: 2.5,
-    borderRadius: 2,
+    borderRadius: 2.4,
+    border: '1px solid rgba(255,255,255,0.05)',
   };
 
   return (
     <Box
       sx={{
         minHeight: '100%',
-        background: 'linear-gradient(180deg, rgba(255,107,0,0.18) 0%, #121212 260px)',
+        background: pageBg(),
       }}
     >
       <Header title="Configurações" />

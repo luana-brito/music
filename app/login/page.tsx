@@ -62,7 +62,7 @@ function LoginForm() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: `radial-gradient(circle at top, rgba(255,107,0,0.25), ${BLACK} 55%)`,
+        background: `radial-gradient(circle at top, rgba(255,107,0,0.18), ${BLACK} 58%)`,
         padding: '16px',
       }}
     >
@@ -73,7 +73,7 @@ function LoginForm() {
           background: ELEVATED,
           border: '1px solid rgba(255,255,255,0.08)',
           padding: { xs: '28px 20px', sm: '40px 28px' },
-          borderRadius: 3,
+          borderRadius: 4,
         }}
       >
         <Stack spacing={3}>

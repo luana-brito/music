@@ -55,8 +55,9 @@ export function FilterBar({
         onChange={(_, next) => setExpanded(next)}
         disableGutters
         sx={{
-          background: 'rgba(255,255,255,0.04)',
-          borderRadius: '12px !important',
+          background: 'rgba(255,255,255,0.035)',
+          borderRadius: '16px !important',
+          border: '1px solid rgba(255,255,255,0.05)',
           '&::before': { display: 'none' },
         }}
       >

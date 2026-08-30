@@ -11,7 +11,7 @@ import { useUserPlaylists } from '@/hooks/useUserPlaylists';
 import { useMusicas, useTribos } from '@/hooks/useApi';
 import { useCatalogFilters } from '@/hooks/useCatalogFilters';
 import { usePlayer } from '@/hooks/usePlayer';
-import { MUTED, ORANGE } from '@/lib/theme';
+import { MUTED, ORANGE, pageBg } from '@/lib/theme';
 import { Musica, PlaylistItem, Tribo } from '@/types';
 import { UserPlaylist } from '@/lib/userPlaylists';
 
@@ -72,7 +72,7 @@ export default function PlaylistsPage() {
   const playlistTribos: Tribo[] = tribos || [];
 
   return (
-    <Box sx={{ minHeight: '100%', background: 'linear-gradient(180deg, rgba(255,107,0,0.2) 0%, #121212 260px)' }}>
+    <Box sx={{ minHeight: '100%', background: pageBg() }}>
       <Header
         title="Playlists"
         searchQuery={filters.searchQuery}
@@ -106,8 +106,8 @@ export default function PlaylistsPage() {
           <Box
             sx={{
               display: 'grid',
-              gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(3, 1fr)', md: 'repeat(4, 1fr)' },
-              gap: 2,
+              gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(3, 1fr)', md: 'repeat(4, 1fr)', lg: 'repeat(5, 1fr)' },
+              gap: 1,
             }}
           >
             {visiblePlaylists.map((playlist) => {
@@ -137,7 +137,7 @@ export default function PlaylistsPage() {
         onClose={() => setOpen(false)}
         fullWidth
         maxWidth="xs"
-        PaperProps={{ sx: { backgroundColor: '#181818', backgroundImage: 'none' } }}
+        PaperProps={{ sx: { backgroundColor: '#181818', backgroundImage: 'none', borderRadius: 3 } }}
       >
         <DialogTitle>Nova playlist</DialogTitle>
         <DialogContent>

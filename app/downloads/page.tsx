@@ -11,7 +11,7 @@ import { useOnlineStatus } from '@/hooks/useOnlineStatus';
 import { useMusicas } from '@/hooks/useApi';
 import { uniqueYears } from '@/lib/catalog';
 import { listOfflineMusicas } from '@/lib/offlineDb';
-import { MUTED, ORANGE } from '@/lib/theme';
+import { MUTED, ORANGE, pageBg } from '@/lib/theme';
 import { Musica, Tribo } from '@/types';
 
 export default function DownloadsPage() {
@@ -56,7 +56,7 @@ export default function DownloadsPage() {
   };
 
   return (
-    <Box sx={{ minHeight: '100%', background: 'linear-gradient(180deg, rgba(255,107,0,0.22) 0%, #121212 280px)' }}>
+    <Box sx={{ minHeight: '100%', background: pageBg() }}>
       <Header
         title="Downloads"
         searchQuery={filters.searchQuery}
@@ -80,7 +80,7 @@ export default function DownloadsPage() {
 
       <Box sx={{ px: { xs: 2, md: 4 }, pb: 4 }}>
         {!online && (
-          <Alert severity="info" sx={{ mb: 2, background: 'rgba(255,107,0,0.12)', color: '#fff' }}>
+          <Alert severity="info" sx={{ mb: 2, background: 'rgba(255,107,0,0.12)', color: '#fff', borderRadius: 2 }}>
             Você está offline. Reproduzindo apenas as músicas baixadas.
           </Alert>
         )}
@@ -101,7 +101,7 @@ export default function DownloadsPage() {
             <CircularProgress sx={{ color: ORANGE }} />
           </Box>
         ) : offlineMusicas.length === 0 ? (
-          <Alert severity="info" sx={{ background: 'rgba(255,107,0,0.12)', color: '#fff' }}>
+          <Alert severity="info" sx={{ background: 'rgba(255,107,0,0.12)', color: '#fff', borderRadius: 2 }}>
             Nenhuma música disponível offline. Use “Salvar biblioteca offline” para ouvir sem internet.
           </Alert>
         ) : (

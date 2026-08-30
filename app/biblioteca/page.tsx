@@ -10,7 +10,7 @@ import { AddToPlaylistDialog } from '@/components/catalog/AddToPlaylistDialog';
 import { useMusicas, useTribos } from '@/hooks/useApi';
 import { useCatalogFilters } from '@/hooks/useCatalogFilters';
 import { usePlayer } from '@/hooks/usePlayer';
-import { MUTED, ORANGE } from '@/lib/theme';
+import { MUTED, ORANGE, pageBg } from '@/lib/theme';
 import { Musica, PlaylistItem } from '@/types';
 
 function BibliotecaContent() {
@@ -36,7 +36,7 @@ function BibliotecaContent() {
   };
 
   return (
-    <Box sx={{ minHeight: '100%', background: 'linear-gradient(180deg, rgba(255,107,0,0.2) 0%, #121212 260px)' }}>
+    <Box sx={{ minHeight: '100%', background: pageBg() }}>
       <Header title="Biblioteca" searchQuery={filters.searchQuery} onSearch={filters.setSearchQuery} />
       <FilterBar
         years={filters.years}

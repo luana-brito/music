@@ -13,7 +13,7 @@ interface CoverArtProps {
   shadow?: boolean;
 }
 
-export function CoverArt({ name, color, src, size = 48, rounded = 4, shadow = true }: CoverArtProps) {
+export function CoverArt({ name, color, src, size = 48, rounded = 8, shadow = true }: CoverArtProps) {
   const [broken, setBroken] = useState(false);
   const letter = (name || '?').charAt(0).toUpperCase();
   const accent = color || ORANGE;
@@ -32,7 +32,7 @@ export function CoverArt({ name, color, src, size = 48, rounded = 4, shadow = tr
         minWidth: numericSize || 0,
         aspectRatio: numericSize ? undefined : '1 / 1',
         borderRadius: `${rounded}px`,
-        background: `linear-gradient(135deg, ${accent} 0%, #1a0800 100%)`,
+        background: `linear-gradient(145deg, ${accent} 0%, #141414 88%)`,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -40,7 +40,7 @@ export function CoverArt({ name, color, src, size = 48, rounded = 4, shadow = tr
         fontSize: numericSize ? Math.max(14, numericSize * 0.38) : 'clamp(64px, 28vw, 140px)',
         color: '#fff',
         letterSpacing: '-0.04em',
-        boxShadow: shadow ? '0 8px 16px rgba(0,0,0,0.35)' : 'none',
+        boxShadow: shadow ? '0 10px 28px rgba(0,0,0,0.38)' : 'none',
         userSelect: 'none',
         overflow: 'hidden',
         position: 'relative',

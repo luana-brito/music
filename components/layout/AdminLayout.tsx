@@ -24,7 +24,7 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { usePathname, useRouter } from 'next/navigation';
 import { signOut } from 'next-auth/react';
-import { BLACK, ELEVATED, MUTED, ORANGE } from '@/lib/theme';
+import { BLACK, ELEVATED, MUTED, ORANGE, ORANGE_SOFT } from '@/lib/theme';
 
 const DRAWER_WIDTH = 250;
 
@@ -80,8 +80,8 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
                 mx: 1,
                 borderRadius: 1.5,
                 color: active ? '#fff' : MUTED,
-                backgroundColor: active ? 'rgba(255,107,0,0.16)' : 'transparent',
-                '&.Mui-selected': { backgroundColor: 'rgba(255,107,0,0.16)' },
+                backgroundColor: active ? ORANGE_SOFT : 'transparent',
+                '&.Mui-selected': { backgroundColor: ORANGE_SOFT },
                 '&:hover': { background: 'rgba(255,255,255,0.06)', color: '#fff' },
               }}
             >

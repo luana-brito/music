@@ -16,7 +16,7 @@ import PlaylistAddIcon from '@mui/icons-material/PlaylistAdd';
 import { usePlayer } from '@/hooks/usePlayer';
 import { CoverArt } from '@/components/ui/CoverArt';
 import { AddToPlaylistDialog } from '@/components/catalog/AddToPlaylistDialog';
-import { MUTED, ORANGE } from '@/lib/theme';
+import { EASE, MUTED, ORANGE } from '@/lib/theme';
 import { getCapaUrl } from '@/lib/capa';
 import { formatDuration } from '@/lib/format';
 
@@ -190,19 +190,20 @@ export function Player() {
             right: 8,
             bottom: 'calc(64px + 8px + env(safe-area-inset-bottom, 0px))',
             zIndex: 1100,
-            height: 58,
+            height: 62,
             alignItems: 'center',
             gap: 1.25,
             px: 1,
             pr: 0.5,
-            borderRadius: '10px',
+            borderRadius: '16px',
             overflow: 'hidden',
             cursor: 'pointer',
-            background: `linear-gradient(90deg, ${accent}55 0%, #2a2a2a 62%)`,
-            boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
+            background: `linear-gradient(90deg, ${accent}66 0%, rgba(28,28,28,0.94) 58%)`,
+            backdropFilter: 'blur(18px)',
+            boxShadow: '0 12px 32px rgba(0,0,0,0.45)',
           }}
         >
-          <CoverArt name={currentTrack?.nome || 'B'} color={accent} src={capaSrc} size={42} rounded={6} shadow={false} />
+          <CoverArt name={currentTrack?.nome || 'B'} color={accent} src={capaSrc} size={44} rounded={8} shadow={false} />
           <Box minWidth={0} flex={1}>
             <Typography noWrap sx={{ fontWeight: 700, fontSize: 13, lineHeight: 1.25 }}>
               {currentTrack?.nome || 'Nenhuma faixa'}
@@ -231,7 +232,7 @@ export function Player() {
               overflow: 'hidden',
             }}
           >
-            <Box sx={{ width: `${progressPct}%`, height: '100%', background: '#fff', borderRadius: 99 }} />
+            <Box sx={{ width: `${progressPct}%`, height: '100%', background: ORANGE, borderRadius: 99 }} />
           </Box>
         </Box>
       )}
@@ -241,18 +242,20 @@ export function Player() {
           display: { xs: 'none', md: 'grid' },
           position: 'relative',
           zIndex: 1100,
-          background: '#181818',
-          borderTop: '1px solid rgba(255,255,255,0.08)',
+          background: 'rgba(18,18,18,0.88)',
+          backdropFilter: 'blur(22px)',
+          borderTop: '1px solid rgba(255,255,255,0.06)',
+          borderRadius: 2.4,
           px: 2.5,
-          py: 1.1,
-          minHeight: 84,
+          py: 1.2,
+          minHeight: 86,
           gridTemplateColumns: 'minmax(180px, 1.1fr) 2fr minmax(200px, 1fr)',
           alignItems: 'center',
           gap: 2,
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, minWidth: 0 }}>
-          <CoverArt name={currentTrack?.nome || 'B'} color={accent} src={capaSrc} size={56} rounded={6} />
+          <CoverArt name={currentTrack?.nome || 'B'} color={accent} src={capaSrc} size={56} rounded={8} />
           <Box minWidth={0} flex={1}>
             <Typography noWrap sx={{ fontWeight: 700, fontSize: 14 }}>
               {currentTrack?.nome || 'Nenhuma faixa'}
@@ -278,7 +281,14 @@ export function Player() {
               onClick={togglePlay}
               disabled={!currentTrack}
               aria-label={state.isPlaying ? 'Pausar' : 'Tocar'}
-              sx={{ width: 40, height: 40, background: '#fff', color: '#000', '&:hover': { background: '#f0f0f0' } }}
+              sx={{
+                width: 42,
+                height: 42,
+                background: ORANGE,
+                color: '#000',
+                '&:hover': { background: '#FF8533', transform: 'scale(1.06)' },
+                transition: `transform 0.2s ${EASE}, background 0.2s ${EASE}`,
+              }}
             >
               {state.isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
             </IconButton>
@@ -368,7 +378,13 @@ export function Player() {
                 onClick={togglePlay}
                 disabled={!currentTrack}
                 aria-label={state.isPlaying ? 'Pausar' : 'Tocar'}
-                sx={{ width: 72, height: 72, background: '#fff', color: '#000', '&:hover': { background: '#f3f3f3' } }}
+                sx={{
+                  width: 76,
+                  height: 76,
+                  background: ORANGE,
+                  color: '#000',
+                  '&:hover': { background: '#FF8533', transform: 'scale(1.04)' },
+                }}
               >
                 {state.isPlaying ? <PauseIcon sx={{ fontSize: 40 }} /> : <PlayArrowIcon sx={{ fontSize: 40 }} />}
               </IconButton>
@@ -392,7 +408,7 @@ export function Player() {
                     }}
                     sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 0.7, cursor: 'pointer' }}
                   >
-                    <CoverArt name={item.musica.nome} color={item.musica.tribo?.cor} src={getCapaUrl(item.musica)} size={40} rounded={6} />
+                    <CoverArt name={item.musica.nome} color={item.musica.tribo?.cor} src={getCapaUrl(item.musica)} size={40} rounded={8} />
                     <Box minWidth={0}>
                       <Typography noWrap sx={{ fontWeight: 600, fontSize: 14 }}>{item.musica.nome}</Typography>
                       <Typography noWrap sx={{ color: MUTED, fontSize: 12 }}>{item.musica.tribo?.nome}</Typography>

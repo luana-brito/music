@@ -7,7 +7,7 @@ import { Sidebar } from '@/components/layout/Sidebar';
 import { BottomNav } from '@/components/layout/BottomNav';
 import { Player } from '@/components/player/Player';
 import { useOnlineStatus } from '@/hooks/useOnlineStatus';
-import { BLACK } from '@/lib/theme';
+import { BLACK, SURFACE } from '@/lib/theme';
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -42,8 +42,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           sx={{
             flex: 1,
             minWidth: 0,
-            background: '#121212',
-            borderRadius: { xs: 0, md: 2 },
+            background: SURFACE,
+            borderRadius: { xs: 0, md: 2.4 },
             overflow: 'auto',
             pb: { xs: 'calc(148px + env(safe-area-inset-bottom, 0px))', md: 0 },
           }}

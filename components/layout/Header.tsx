@@ -18,6 +18,7 @@ interface HeaderProps {
 export function Header({ title, searchQuery = '', onSearch, searchPlaceholder = 'Buscar na biblioteca' }: HeaderProps) {
   const { data: session } = useSession();
   const adminHref = session?.user?.role === 'ADMIN' ? '/admin' : '/login';
+  const showTopRow = Boolean(title);
 
   return (
     <Box
@@ -25,19 +26,27 @@ export function Header({ title, searchQuery = '', onSearch, searchPlaceholder = 
         position: 'sticky',
         top: 0,
         zIndex: 20,
-        background: 'linear-gradient(180deg, rgba(0,0,0,0.78) 0%, rgba(18,18,18,0.92) 100%)',
-        backdropFilter: 'blur(16px)',
+        background: 'linear-gradient(180deg, rgba(18,18,18,0.82) 0%, rgba(18,18,18,0.55) 70%, rgba(18,18,18,0) 100%)',
+        backdropFilter: 'blur(18px)',
         px: { xs: 2, md: 4 },
-        pt: { xs: 1.5, md: 2 },
+        pt: { xs: 1.5, md: 2.2 },
         pb: 2,
       }}
     >
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2, mb: onSearch || title ? 1.5 : 0 }}>
+      <Box
+        sx={{
+          display: { xs: 'flex', md: title ? 'flex' : 'none' },
+          alignItems: 'center',
+          gap: 1.2,
+          mb: { xs: 1.5, md: title ? 1.5 : 0 },
+        }}
+      >
         <IconButton
           href={adminHref}
           component="a"
           aria-label={session?.user?.role === 'ADMIN' ? 'Abrir admin' : 'Entrar no admin'}
           sx={{
+            display: { xs: 'inline-flex', md: 'none' },
             color: '#fff',
             background: 'rgba(255,255,255,0.08)',
             width: 40,
@@ -47,12 +56,12 @@ export function Header({ title, searchQuery = '', onSearch, searchPlaceholder = 
         >
           <AdminPanelSettingsIcon />
         </IconButton>
-        {title && (
+        {showTopRow && (
           <Box
             sx={{
               fontWeight: 800,
-              fontSize: { xs: 22, md: 28 },
-              letterSpacing: '-0.03em',
+              fontSize: { xs: 24, md: 32 },
+              letterSpacing: '-0.04em',
               flex: 1,
               minWidth: 0,
               overflow: 'hidden',
@@ -70,15 +79,16 @@ export function Header({ title, searchQuery = '', onSearch, searchPlaceholder = 
           sx={{
             display: 'flex',
             alignItems: 'center',
-            background: 'rgba(255,255,255,0.08)',
+            background: '#fff',
             borderRadius: 999,
-            px: 1.5,
-            maxWidth: { xs: '100%', md: 420 },
+            px: 1.6,
+            maxWidth: { xs: '100%', md: 380 },
             width: '100%',
-            height: 44,
+            height: 46,
+            boxShadow: '0 8px 24px rgba(0,0,0,0.18)',
           }}
         >
-          <SearchIcon sx={{ color: MUTED, fontSize: 22 }} />
+          <SearchIcon sx={{ color: '#121212', fontSize: 22 }} />
           <InputBase
             placeholder={searchPlaceholder}
             value={searchQuery}
@@ -86,7 +96,7 @@ export function Header({ title, searchQuery = '', onSearch, searchPlaceholder = 
             sx={{
               flex: 1,
               px: 1.2,
-              color: '#fff',
+              color: '#121212',
               fontSize: 14,
               fontWeight: 600,
               '& ::placeholder': { color: MUTED, opacity: 1 },
@@ -94,7 +104,7 @@ export function Header({ title, searchQuery = '', onSearch, searchPlaceholder = 
           />
           {searchQuery && (
             <IconButton size="small" onClick={() => onSearch('')} aria-label="Limpar busca">
-              <ClearIcon sx={{ fontSize: 18, color: MUTED }} />
+              <ClearIcon sx={{ fontSize: 18, color: '#555' }} />
             </IconButton>
           )}
         </Box>

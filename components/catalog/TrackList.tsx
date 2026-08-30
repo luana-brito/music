@@ -31,8 +31,8 @@ export function TrackList({ musicas, onPlay, onAdd, onRemove }: TrackListProps) 
           fontSize: 12,
           fontWeight: 700,
           letterSpacing: 1,
-          borderBottom: '1px solid rgba(255,255,255,0.08)',
-          mb: 1,
+          borderBottom: '1px solid rgba(255,255,255,0.06)',
+          mb: 0.8,
         }}
       >
         <Box>#</Box>

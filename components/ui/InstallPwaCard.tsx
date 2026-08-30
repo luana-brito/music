@@ -47,7 +47,7 @@ export function InstallPwaCard() {
   };
 
   return (
-    <Box sx={{ background: 'rgba(255,255,255,0.06)', p: 2.5, borderRadius: 2 }}>
+    <Box sx={{ background: 'rgba(255,255,255,0.045)', p: 2.5, borderRadius: 2.4, border: '1px solid rgba(255,255,255,0.05)' }}>
       <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 700 }}>
         Instalar aplicativo
       </Typography>
