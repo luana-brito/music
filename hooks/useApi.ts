@@ -215,7 +215,10 @@ async function uploadFile(file: File, kind: 'imagens' | 'musicas') {
       multipart: true,
     });
     return { url: blob.url, filename: blob.pathname.split('/').pop() || file.name };
-  } catch {
+  } catch (error) {
+    if (file.size > 4 * 1024 * 1024) {
+      throw error instanceof Error ? error : new Error('Falha no upload do arquivo');
+    }
     const formData = new FormData();
     formData.append('file', file);
     const { data } = await api.post<{ url: string; filename: string }>(
