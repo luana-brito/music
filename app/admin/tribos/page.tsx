@@ -35,6 +35,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Tribo } from '@/types';
+import { MAX_UPLOAD_LABEL } from '@/lib/uploadLimits';
 
 const triboSchema = z.object({
   nome: z.string().min(1, 'Nome é obrigatório'),
@@ -243,7 +244,7 @@ export default function TribosPage() {
               <ImageUploadField
                 id="tribo-logo-upload"
                 label="Enviar imagem"
-                hint="JPG, PNG, WEBP ou GIF até 5 MB"
+                hint={`JPG, PNG, WEBP ou GIF até ${MAX_UPLOAD_LABEL}`}
                 previewUrl={logoUrl}
                 uploading={isUploadingImage}
                 onFile={(file) => {

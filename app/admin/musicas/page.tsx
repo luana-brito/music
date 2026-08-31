@@ -53,7 +53,7 @@ import { formatDuration } from '@/lib/format';
 import { readAudioDuration } from '@/lib/audioDuration';
 import { MUTED } from '@/lib/theme';
 import { Musica } from '@/types';
-import { AUDIO_ACCEPT } from '@/lib/uploadLimits';
+import { AUDIO_ACCEPT, MAX_UPLOAD_LABEL } from '@/lib/uploadLimits';
 
 const musicaSchema = z.object({
   nome: z.string().min(1, 'Nome é obrigatório'),
@@ -331,7 +331,7 @@ export default function MusicasPage() {
                       {isUploading ? 'Enviando...' : editingMusica ? 'Trocar arquivo de áudio' : 'Selecione um arquivo de áudio'}
                     </Button>
                     <Typography variant="caption" sx={{ display: 'block', color: MUTED, mt: 1 }}>
-                      MP3 ou WAV até 5 MB
+                      MP3 ou WAV até {MAX_UPLOAD_LABEL}
                     </Typography>
                   </Box>
                 </label>
@@ -351,7 +351,7 @@ export default function MusicasPage() {
               <ImageUploadField
                 id="musica-capa-upload"
                 label="Enviar capa"
-                hint="Opcional, até 5 MB. Sem capa, usa a imagem da tribo."
+                hint={`Opcional, até ${MAX_UPLOAD_LABEL}. Sem capa, usa a imagem da tribo.`}
                 previewUrl={capaPreview}
                 uploading={isUploadingImage}
                 onFile={(file) => {
