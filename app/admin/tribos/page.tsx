@@ -253,7 +253,11 @@ export default function TribosPage() {
                     onError: (error) => {
                       setLogoUrl('');
                       setUploadError(
-                        axios.isAxiosError(error) ? (error.response?.data?.error as string) || 'Falha no upload' : 'Falha no upload'
+                        axios.isAxiosError(error)
+                          ? (error.response?.data?.error as string) || 'Falha no upload'
+                          : error instanceof Error
+                            ? error.message
+                            : 'Falha no upload'
                       );
                     },
                   });

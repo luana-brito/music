@@ -12,11 +12,5 @@ export default withAuth({
 });
 
 export const config = {
-  matcher: [
-    '/admin',
-    '/admin/:path*',
-    '/api/usuarios/:path*',
-    '/api/musicas/upload',
-    '/api/imagens/upload',
-  ],
+  matcher: ['/admin', '/admin/:path*', '/api/usuarios/:path*'],
 };

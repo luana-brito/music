@@ -1,14 +1,6 @@
 import { del, put } from '@vercel/blob';
 
-export const AUDIO_MPEG = 'audio/mpeg';
-
-export function audioBlobPath(originalName: string) {
-  const base = originalName
-    .replace(/[^a-zA-Z0-9.-]/g, '_')
-    .replace(/(\.mpeg)+$/i, '')
-    .replace(/(\.mp3)+$/i, '');
-  return `musicas/${Date.now()}-${base}.mp3`;
-}
+export { audioBlobPath } from './uploadLimits';
 
 export async function uploadPublicBlob(pathname: string, file: Buffer | File, contentType: string) {
   return put(pathname, file, {

@@ -53,6 +53,7 @@ import { formatDuration } from '@/lib/format';
 import { readAudioDuration } from '@/lib/audioDuration';
 import { MUTED } from '@/lib/theme';
 import { Musica } from '@/types';
+import { AUDIO_ACCEPT } from '@/lib/uploadLimits';
 
 const musicaSchema = z.object({
   nome: z.string().min(1, 'Nome é obrigatório'),
@@ -64,9 +65,12 @@ const musicaSchema = z.object({
 type MusicaInput = z.infer<typeof musicaSchema>;
 
 function apiMessage(error: unknown, fallback: string) {
-  if (!axios.isAxiosError(error)) return fallback;
-  const data = error.response?.data?.error;
-  return typeof data === 'string' ? data : fallback;
+  if (axios.isAxiosError(error)) {
+    const data = error.response?.data?.error;
+    return typeof data === 'string' ? data : fallback;
+  }
+  if (error instanceof Error && error.message) return error.message;
+  return fallback;
 }
 
 export default function MusicasPage() {
@@ -313,7 +317,7 @@ export default function MusicasPage() {
             <Stack spacing={2} sx={{ mt: 2 }}>
               <Box sx={{ border: '2px dashed rgba(255,255,255,0.2)', borderRadius: 2, p: 3, textAlign: 'center' }}>
                 <input
-                  accept=".mp3,.mpeg,audio/mpeg,audio/mp3,audio/x-mpeg,video/mpeg"
+                  accept={AUDIO_ACCEPT}
                   style={{ display: 'none' }}
                   id="file-upload"
                   type="file"
@@ -326,6 +330,9 @@ export default function MusicasPage() {
                     <Button component="span" variant="outlined" disabled={isUploading}>
                       {isUploading ? 'Enviando...' : editingMusica ? 'Trocar arquivo de áudio' : 'Selecione um arquivo de áudio'}
                     </Button>
+                    <Typography variant="caption" sx={{ display: 'block', color: MUTED, mt: 1 }}>
+                      MP3 ou WAV até 5 MB
+                    </Typography>
                   </Box>
                 </label>
                 {uploadProgress > 0 && <LinearProgress variant="determinate" value={uploadProgress} sx={{ mt: 2 }} />}
@@ -344,12 +351,13 @@ export default function MusicasPage() {
               <ImageUploadField
                 id="musica-capa-upload"
                 label="Enviar capa"
-                hint="Opcional. Sem capa, usa a imagem da tribo."
+                hint="Opcional, até 5 MB. Sem capa, usa a imagem da tribo."
                 previewUrl={capaPreview}
                 uploading={isUploadingImage}
                 onFile={(file) => {
                   uploadImagem(file, {
                     onSuccess: (data) => setCapaUrl(data.url),
+                    onError: (error) => setUploadError(apiMessage(error, 'Falha no upload da capa')),
                   });
                 }}
                 onClear={() => setCapaUrl('')}

@@ -1,10 +1,12 @@
-export function estimateDurationFromSize(bytes: number) {
-  return Math.max(1, Math.round(bytes / 16000));
+export function estimateDurationFromSize(bytes: number, file?: File) {
+  const isWav = Boolean(file && (file.name.toLowerCase().endsWith('.wav') || /wav/i.test(file.type)));
+  const bytesPerSecond = isWav ? 176400 : 16000;
+  return Math.max(1, Math.round(bytes / bytesPerSecond));
 }
 
 export function readAudioDuration(file: File): Promise<number> {
   return new Promise((resolve) => {
-    const fallback = estimateDurationFromSize(file.size);
+    const fallback = estimateDurationFromSize(file.size, file);
     const objectUrl = URL.createObjectURL(file);
     const audio = document.createElement('audio');
     audio.preload = 'metadata';

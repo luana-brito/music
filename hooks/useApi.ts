@@ -1,7 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
+import { upload } from '@vercel/blob/client';
 import { Musica, Tribo, Usuario } from '@/types';
 import { useOnlineStatus } from './useOnlineStatus';
+import { assertUploadSize, audioBlobPath, imageBlobPath, isAllowedAudio } from '@/lib/uploadLimits';
 
 const api = axios.create({ baseURL: '/api' });
 
@@ -197,24 +199,41 @@ export function useDeleteUsuario() {
   });
 }
 
+async function uploadFile(file: File, kind: 'imagens' | 'musicas') {
+  assertUploadSize(file.size);
+  if (kind === 'musicas' && !isAllowedAudio(file.name, file.type)) {
+    throw new Error('Apenas arquivos MP3, MPEG ou WAV são permitidos');
+  }
+
+  const handleUploadUrl = kind === 'imagens' ? '/api/imagens/upload' : '/api/musicas/upload';
+  const pathname = kind === 'imagens' ? imageBlobPath(file.name) : audioBlobPath(file.name, file.type);
+
+  try {
+    const blob = await upload(pathname, file, {
+      access: 'public',
+      handleUploadUrl,
+      multipart: true,
+    });
+    return { url: blob.url, filename: blob.pathname.split('/').pop() || file.name };
+  } catch {
+    const formData = new FormData();
+    formData.append('file', file);
+    const { data } = await api.post<{ url: string; filename: string }>(
+      kind === 'imagens' ? '/imagens/upload' : '/musicas/upload',
+      formData
+    );
+    return data;
+  }
+}
+
 export function useUploadImagem() {
   return useMutation({
-    mutationFn: async (file: File) => {
-      const formData = new FormData();
-      formData.append('file', file);
-      const { data } = await api.post<{ url: string; filename: string }>('/imagens/upload', formData);
-      return data;
-    },
+    mutationFn: (file: File) => uploadFile(file, 'imagens'),
   });
 }
 
 export function useUploadMusica() {
   return useMutation({
-    mutationFn: async (file: File) => {
-      const formData = new FormData();
-      formData.append('file', file);
-      const { data } = await api.post<{ url: string; filename: string }>('/musicas/upload', formData);
-      return data;
-    },
+    mutationFn: (file: File) => uploadFile(file, 'musicas'),
   });
 }
