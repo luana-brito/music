@@ -44,8 +44,18 @@ export function Player() {
   const currentTrack = state.currentTrack?.musica;
   const capaSrc = currentTrack ? getCapaUrl(currentTrack) : null;
   const accent = currentTrack?.tribo?.cor || ORANGE;
-  const trackIndex = state.playlist.findIndex((item) => item.musica.id === currentTrack?.id);
-  const upcoming = trackIndex >= 0 ? state.playlist.slice(trackIndex + 1, trackIndex + 8) : [];
+  const upcoming = (() => {
+    if (!currentTrack) return [];
+    if (state.isShuffle && state.shuffleQueue.length) {
+      const index = state.shuffleQueue.indexOf(currentTrack.id);
+      return state.shuffleQueue
+        .slice(index + 1, index + 8)
+        .map((id) => state.playlist.find((item) => item.musica.id === id))
+        .filter((item): item is NonNullable<typeof item> => Boolean(item));
+    }
+    const trackIndex = state.playlist.findIndex((item) => item.musica.id === currentTrack.id);
+    return trackIndex >= 0 ? state.playlist.slice(trackIndex + 1, trackIndex + 8) : [];
+  })();
 
   const togglePlay = (event?: React.MouseEvent) => {
     event?.stopPropagation();

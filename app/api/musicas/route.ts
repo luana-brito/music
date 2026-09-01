@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '../../../lib/prisma';
 import { requireAdmin } from '@/lib/requireAdmin';
+import { isCurrentIsoWeek } from '@/lib/week';
 
 const createMusicaSchema = z.object({
   nome: z.string().min(1),
@@ -18,7 +19,12 @@ export async function GET() {
       include: { tribo: true },
       orderBy: [{ plays: 'desc' }, { nome: 'asc' }],
     });
-    return NextResponse.json(musicas);
+    return NextResponse.json(
+      musicas.map((musica) => ({
+        ...musica,
+        playsWeek: isCurrentIsoWeek(musica.playsWeekAt) ? musica.playsWeek : 0,
+      }))
+    );
   } catch (error) {
     console.error('Erro ao listar músicas:', error);
     return NextResponse.json({ error: 'Falha ao carregar músicas' }, { status: 500 });

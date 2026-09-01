@@ -1,5 +1,5 @@
-const CACHE_NAME = 'biblioteca-musical-v3';
-const RUNTIME_CACHE = 'biblioteca-musical-runtime-v1';
+const CACHE_NAME = 'biblioteca-musical-v4';
+const RUNTIME_CACHE = 'biblioteca-musical-runtime-v2';
 const OFFLINE_URL = '/offline.html';
 
 const PRECACHE_URLS = ['/', '/manifest.json', OFFLINE_URL];

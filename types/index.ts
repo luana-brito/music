@@ -24,6 +24,8 @@ export interface Musica {
   capa: string | null;
   duracao: number;
   plays?: number;
+  playsWeek?: number;
+  playsWeekAt?: Date | string | null;
   triboId: string;
   tribo?: Tribo;
   createdAt: Date;
@@ -38,6 +40,7 @@ export interface PlaylistItem {
 export interface PlayerState {
   currentTrack: PlaylistItem | null;
   playlist: PlaylistItem[];
+  shuffleQueue: string[];
   isPlaying: boolean;
   volume: number;
   repeatMode: 'none' | 'one' | 'all';

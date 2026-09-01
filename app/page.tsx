@@ -6,9 +6,11 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import { Header } from '@/components/layout/Header';
 import { PlaylistCard } from '@/components/catalog/PlaylistCard';
 import { CoverArt } from '@/components/ui/CoverArt';
+import { InstallPwaCard } from '@/components/ui/InstallPwaCard';
 import { useMusicas, useTribos } from '@/hooks/useApi';
 import { usePlayer } from '@/hooks/usePlayer';
 import { musicasByTribo, sortMusicas, tribosWithYearMusicas } from '@/lib/catalog';
+import { weekPlays } from '@/lib/week';
 import { getCapaUrl } from '@/lib/capa';
 import { EASE, MUTED, ORANGE, pageBg } from '@/lib/theme';
 import { PlaylistItem } from '@/types';
@@ -34,13 +36,19 @@ export default function HomePage() {
   }, [musicas, tribos, currentYear]);
 
   const featured = useMemo(() => {
-    if (!yearTribos.length || !musicas) return null;
-    const ranked = [...yearTribos].sort(
-      (a, b) => musicasByTribo(musicas, b.id, currentYear).length - musicasByTribo(musicas, a.id, currentYear).length
+    if (!musicas?.length) return null;
+    const weekly = [...musicas].sort(
+      (a, b) => weekPlays(b) - weekPlays(a) || (b.plays || 0) - (a.plays || 0) || a.nome.localeCompare(b.nome, 'pt-BR')
     );
-    const tribo = ranked[0];
-    return { tribo, tracks: musicasByTribo(musicas, tribo.id, currentYear) };
-  }, [yearTribos, musicas, currentYear]);
+    const tracks = weekly.slice(0, 20);
+    const top = tracks[0];
+    return {
+      title: 'Mais tocadas da semana',
+      tracks,
+      color: top?.tribo?.cor || ORANGE,
+      cover: getCapaUrl(top),
+    };
+  }, [musicas]);
 
   const topPlayed = useMemo(() => {
     if (!musicas) return [];
@@ -58,6 +66,9 @@ export default function HomePage() {
       <Header title={greeting} />
 
       <Box sx={{ px: { xs: 2, md: 4 }, pb: 5 }}>
+        <Box sx={{ mb: 2.5 }}>
+          <InstallPwaCard compact />
+        </Box>
         {isFetching && !isLoading && (
           <Typography sx={{ color: MUTED, fontSize: 12, mb: 1.5 }}>Atualizando catálogo…</Typography>
         )}
@@ -81,16 +92,14 @@ export default function HomePage() {
             >
               {featured && (
                 <Box
-                  onClick={() =>
-                    router.push(`/biblioteca?tribo=${featured.tribo.id}&year=${currentYear}` as never)
-                  }
+                  onClick={() => playList(featured.tracks)}
                   sx={{
                     position: 'relative',
                     overflow: 'hidden',
                     minHeight: { xs: 220, md: 280 },
                     borderRadius: 4,
                     cursor: 'pointer',
-                    background: `linear-gradient(135deg, ${featured.tribo.cor || ORANGE} 0%, #101010 78%)`,
+                    background: `linear-gradient(135deg, ${featured.color} 0%, #101010 78%)`,
                     display: 'flex',
                     alignItems: 'flex-end',
                     p: { xs: 2.5, md: 4 },
@@ -110,9 +119,9 @@ export default function HomePage() {
                     }}
                   >
                     <CoverArt
-                      name={featured.tribo.nome}
-                      color={featured.tribo.cor}
-                      src={featured.tribo.logo}
+                      name={featured.title}
+                      color={featured.color}
+                      src={featured.cover}
                       size="100%"
                       rounded={16}
                     />
@@ -122,14 +131,14 @@ export default function HomePage() {
                       PLAYLIST EM DESTAQUE
                     </Typography>
                     <Typography sx={{ fontWeight: 800, fontSize: { xs: 28, md: 42 }, letterSpacing: '-0.04em', lineHeight: 1.05 }}>
-                      {featured.tribo.nome}
+                      {featured.title}
                     </Typography>
                     <Typography sx={{ color: 'rgba(255,255,255,0.78)', mt: 1, mb: 2.2, fontSize: 14 }}>
-                      {featured.tracks.length} {featured.tracks.length === 1 ? 'música' : 'músicas'} • {currentYear}
+                      {featured.tracks.length} {featured.tracks.length === 1 ? 'música' : 'músicas'} desta semana
                     </Typography>
                     <IconButton
                       className="hero-play"
-                      aria-label={`Tocar ${featured.tribo.nome}`}
+                      aria-label={`Tocar ${featured.title}`}
                       onClick={(event) => {
                         event.stopPropagation();
                         playList(featured.tracks);

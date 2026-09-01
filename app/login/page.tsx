@@ -4,6 +4,7 @@ import React, { Suspense, useState } from 'react';
 import { Alert, Box, Button, Card, CircularProgress, Stack, TextField, Typography } from '@mui/material';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { BLACK, ELEVATED, MUTED, ORANGE } from '@/lib/theme';
 
 function safeCallbackUrl(value: string | null) {
@@ -77,6 +78,13 @@ function LoginForm() {
         }}
       >
         <Stack spacing={3}>
+          <Button
+            onClick={() => router.push('/' as never)}
+            startIcon={<ArrowBackIcon />}
+            sx={{ alignSelf: 'flex-start', color: MUTED, px: 0, minWidth: 0 }}
+          >
+            Voltar ao app
+          </Button>
           <Box sx={{ textAlign: 'center' }}>
             <Box
               sx={{

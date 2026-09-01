@@ -4,6 +4,8 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useR
 import { Musica, PlayerState, PlaylistItem } from '@/types';
 import { openOfflineDb } from '@/lib/offlineDb';
 import { getCapaUrl } from '@/lib/capa';
+import { shuffledIds } from '@/lib/shuffle';
+import { mediaSessionArtwork } from '@/lib/mediaArtwork';
 
 interface PlayerContextType {
   state: PlayerState;
@@ -33,6 +35,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<PlayerState>({
     currentTrack: null,
     playlist: [],
+    shuffleQueue: [],
     isPlaying: false,
     volume: 1,
     repeatMode: 'none',
@@ -41,7 +44,6 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   const [offlineMusicas, setOfflineMusicas] = useState<Set<string>>(new Set());
   const offlineMusicasRef = useRef(offlineMusicas);
   const currentTrackRef = useRef(state.currentTrack);
-  isPlayingRef.current = state.isPlaying;
   offlineMusicasRef.current = offlineMusicas;
   currentTrackRef.current = state.currentTrack;
 
@@ -58,41 +60,68 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const play = useCallback((playlist: PlaylistItem[], startIndex = 0) => {
+    const current = playlist[startIndex] || null;
+    isPlayingRef.current = Boolean(current);
     setState((prev) => ({
       ...prev,
       playlist,
-      currentTrack: playlist[startIndex] || null,
-      isPlaying: Boolean(playlist[startIndex]),
+      currentTrack: current,
+      isPlaying: Boolean(current),
+      shuffleQueue: prev.isShuffle
+        ? shuffledIds(playlist.map((item) => item.musica.id), current?.musica.id)
+        : [],
     }));
   }, []);
 
   const pause = useCallback(() => {
+    isPlayingRef.current = false;
     setState((prev) => ({ ...prev, isPlaying: false }));
   }, []);
 
   const resume = useCallback(() => {
+    isPlayingRef.current = true;
     setState((prev) => ({ ...prev, isPlaying: true }));
   }, []);
 
   const next = useCallback(() => {
     setState((prev) => {
       if (!prev.currentTrack || prev.playlist.length === 0) return prev;
-      const currentIndex = prev.playlist.findIndex((item) => item.musica.id === prev.currentTrack?.musica.id);
+      const ids = prev.playlist.map((item) => item.musica.id);
+      const currentId = prev.currentTrack.musica.id;
+      const byId = (id: string) => prev.playlist.find((item) => item.musica.id === id) || prev.currentTrack;
 
       if (prev.isShuffle && prev.playlist.length > 1) {
-        let randomIndex = currentIndex;
-        while (randomIndex === currentIndex) {
-          randomIndex = Math.floor(Math.random() * prev.playlist.length);
+        const queue = prev.shuffleQueue.length === ids.length ? prev.shuffleQueue : shuffledIds(ids, currentId);
+        const index = queue.indexOf(currentId);
+        if (index >= 0 && index < queue.length - 1) {
+          isPlayingRef.current = true;
+          return { ...prev, shuffleQueue: queue, currentTrack: byId(queue[index + 1]), isPlaying: true };
         }
-        return { ...prev, currentTrack: prev.playlist[randomIndex], isPlaying: true };
+        if (prev.repeatMode === 'all') {
+          const reshuffled = shuffledIds(ids.filter((id) => id !== currentId));
+          if (!reshuffled.length) return prev;
+          isPlayingRef.current = true;
+          return {
+            ...prev,
+            shuffleQueue: [currentId, ...reshuffled],
+            currentTrack: byId(reshuffled[0]),
+            isPlaying: true,
+          };
+        }
+        isPlayingRef.current = false;
+        return { ...prev, shuffleQueue: queue, isPlaying: false };
       }
 
+      const currentIndex = prev.playlist.findIndex((item) => item.musica.id === currentId);
       let nextIndex = currentIndex + 1;
       if (nextIndex >= prev.playlist.length) {
         if (prev.repeatMode === 'all') nextIndex = 0;
-        else return { ...prev, isPlaying: false };
+        else {
+          isPlayingRef.current = false;
+          return { ...prev, isPlaying: false };
+        }
       }
-
+      isPlayingRef.current = true;
       return { ...prev, currentTrack: prev.playlist[nextIndex], isPlaying: true };
     });
   }, []);
@@ -100,11 +129,20 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   const prev = useCallback(() => {
     setState((prevState) => {
       if (!prevState.currentTrack || prevState.playlist.length === 0) return prevState;
-      const currentIndex = prevState.playlist.findIndex(
-        (item) => item.musica.id === prevState.currentTrack?.musica.id
-      );
+      const currentId = prevState.currentTrack.musica.id;
+      const byId = (id: string) => prevState.playlist.find((item) => item.musica.id === id) || prevState.currentTrack;
+
+      if (prevState.isShuffle && prevState.shuffleQueue.length > 1) {
+        const index = prevState.shuffleQueue.indexOf(currentId);
+        if (index <= 0) return prevState;
+        isPlayingRef.current = true;
+        return { ...prevState, currentTrack: byId(prevState.shuffleQueue[index - 1]), isPlaying: true };
+      }
+
+      const currentIndex = prevState.playlist.findIndex((item) => item.musica.id === currentId);
       const prevIndex = currentIndex - 1;
       if (prevIndex < 0) return prevState;
+      isPlayingRef.current = true;
       return { ...prevState, currentTrack: prevState.playlist[prevIndex], isPlaying: true };
     });
   }, []);
@@ -127,7 +165,17 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const toggleShuffle = useCallback(() => {
-    setState((prev) => ({ ...prev, isShuffle: !prev.isShuffle }));
+    setState((prev) => {
+      const isShuffle = !prev.isShuffle;
+      const currentId = prev.currentTrack?.musica.id;
+      return {
+        ...prev,
+        isShuffle,
+        shuffleQueue: isShuffle
+          ? shuffledIds(prev.playlist.map((item) => item.musica.id), currentId)
+          : [],
+      };
+    });
   }, []);
 
   const downloadOffline = useCallback(async (musica: Musica) => {
@@ -189,6 +237,14 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
       console.error('Erro ao resolver áudio offline:', error);
       return null;
     }
+  }, []);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    audio.setAttribute('playsinline', 'true');
+    audio.setAttribute('webkit-playsinline', 'true');
+    audio.setAttribute('x-webkit-airplay', 'allow');
   }, []);
 
   const trackId = state.currentTrack?.musica.id ?? null;
@@ -284,30 +340,98 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (typeof navigator === 'undefined' || !('mediaSession' in navigator)) return;
-    const track = state.currentTrack?.musica;
-    if (!track) {
-      navigator.mediaSession.metadata = null;
-      return;
-    }
+    const audio = audioRef.current;
 
-    const artwork = getCapaUrl(track);
-    navigator.mediaSession.metadata = new MediaMetadata({
-      title: track.nome,
-      artist: track.tribo?.nome || 'Música',
-      artwork: artwork ? [{ src: artwork, sizes: '512x512', type: 'image/jpeg' }] : [],
-    });
-    navigator.mediaSession.playbackState = state.isPlaying ? 'playing' : 'paused';
-    navigator.mediaSession.setActionHandler('play', () => {
+    const bind = (action: MediaSessionAction, handler: MediaSessionActionHandler) => {
+      try {
+        navigator.mediaSession.setActionHandler(action, handler);
+      } catch {
+        /* ação não suportada no navegador */
+      }
+    };
+
+    bind('play', () => {
+      isPlayingRef.current = true;
       setState((prev) => ({ ...prev, isPlaying: true }));
       audioRef.current?.play().catch(() => {});
     });
-    navigator.mediaSession.setActionHandler('pause', () => {
+    bind('pause', () => {
+      isPlayingRef.current = false;
       setState((prev) => ({ ...prev, isPlaying: false }));
       audioRef.current?.pause();
     });
-    navigator.mediaSession.setActionHandler('previoustrack', () => prev());
-    navigator.mediaSession.setActionHandler('nexttrack', () => next());
-  }, [state.currentTrack?.musica.id, state.currentTrack?.musica.nome, state.currentTrack?.musica.tribo?.nome, state.isPlaying, next, prev]);
+    bind('stop', () => {
+      isPlayingRef.current = false;
+      setState((prev) => ({ ...prev, isPlaying: false }));
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
+    });
+    bind('previoustrack', () => prev());
+    bind('nexttrack', () => next());
+    bind('seekbackward', (details) => {
+      if (!audioRef.current) return;
+      audioRef.current.currentTime = Math.max(0, audioRef.current.currentTime - (details.seekOffset || 10));
+    });
+    bind('seekforward', (details) => {
+      if (!audioRef.current) return;
+      audioRef.current.currentTime = Math.min(
+        audioRef.current.duration || 0,
+        audioRef.current.currentTime + (details.seekOffset || 10)
+      );
+    });
+    bind('seekto', (details) => {
+      if (details.seekTime == null || !audioRef.current) return;
+      audioRef.current.currentTime = details.seekTime;
+    });
+
+    const updatePosition = () => {
+      if (!audio || !Number.isFinite(audio.duration) || audio.duration <= 0) return;
+      try {
+        navigator.mediaSession.setPositionState({
+          duration: audio.duration,
+          playbackRate: audio.playbackRate || 1,
+          position: Math.min(audio.currentTime, audio.duration),
+        });
+      } catch {
+        /* older browsers */
+      }
+    };
+    audio?.addEventListener('timeupdate', updatePosition);
+    audio?.addEventListener('loadedmetadata', updatePosition);
+    audio?.addEventListener('durationchange', updatePosition);
+    return () => {
+      audio?.removeEventListener('timeupdate', updatePosition);
+      audio?.removeEventListener('loadedmetadata', updatePosition);
+      audio?.removeEventListener('durationchange', updatePosition);
+    };
+  }, [next, prev, state.currentTrack?.musica.id]);
+
+  useEffect(() => {
+    if (typeof navigator === 'undefined' || !('mediaSession' in navigator)) return;
+    const track = state.currentTrack?.musica;
+    if (!track) {
+      navigator.mediaSession.metadata = null;
+      navigator.mediaSession.playbackState = 'none';
+      return;
+    }
+
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: track.nome,
+      artist: track.tribo?.nome || 'Música',
+      album: track.ano ? String(track.ano) : 'Música',
+      artwork: mediaSessionArtwork(getCapaUrl(track)),
+    });
+    navigator.mediaSession.playbackState = state.isPlaying ? 'playing' : 'paused';
+  }, [
+    state.currentTrack?.musica.id,
+    state.currentTrack?.musica.nome,
+    state.currentTrack?.musica.tribo?.nome,
+    state.currentTrack?.musica.capa,
+    state.currentTrack?.musica.ano,
+    state.isPlaying,
+  ]);
 
   const value = useMemo(
     () => ({
@@ -350,9 +474,20 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
       {children}
       <audio
         ref={audioRef}
+        id="app-audio-player"
         playsInline
         preload="auto"
-        style={{ position: 'absolute', width: 1, height: 1, opacity: 0, pointerEvents: 'none' }}
+        controls={false}
+        style={{
+          position: 'fixed',
+          left: 0,
+          bottom: 0,
+          width: 1,
+          height: 1,
+          opacity: 0.01,
+          pointerEvents: 'none',
+          zIndex: -1,
+        }}
       />
     </PlayerContext.Provider>
   );

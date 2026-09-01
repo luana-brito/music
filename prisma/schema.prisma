@@ -35,6 +35,8 @@ model Musica {
   capa      String?
   duracao   Int
   plays     Int       @default(0)
+  playsWeek Int       @default(0)
+  playsWeekAt DateTime @default(now())
   tribo     Tribo     @relation(fields: [triboId], references: [id])
   triboId   String
   createdAt DateTime  @default(now())

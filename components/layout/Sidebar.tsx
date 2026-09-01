@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Box, IconButton, List, ListItemButton, ListItemIcon, ListItemText, Typography } from '@mui/material';
 import HomeIcon from '@mui/icons-material/Home';
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
@@ -28,7 +28,9 @@ export function Sidebar() {
   const pathname = usePathname();
   const { data: session } = useSession();
   const { playlists, ready } = useUserPlaylists();
-  const adminHref = session?.user?.role === 'ADMIN' ? '/admin' : '/login';
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const adminHref = mounted && session?.user?.role === 'ADMIN' ? '/admin' : '/login';
 
   return (
     <Box
