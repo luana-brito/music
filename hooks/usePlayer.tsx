@@ -3,6 +3,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Musica, PlayerState, PlaylistItem } from '@/types';
 import { openOfflineDb } from '@/lib/offlineDb';
+import { getCapaUrl } from '@/lib/capa';
 
 interface PlayerContextType {
   state: PlayerState;
@@ -26,6 +27,9 @@ const PlayerContext = createContext<PlayerContextType | undefined>(undefined);
 
 export function PlayerProvider({ children }: { children: React.ReactNode }) {
   const audioRef = useRef<HTMLAudioElement>(null);
+  const loadedTrackId = useRef<string | null>(null);
+  const objectUrlRef = useRef<string | null>(null);
+  const isPlayingRef = useRef(false);
   const [state, setState] = useState<PlayerState>({
     currentTrack: null,
     playlist: [],
@@ -35,6 +39,11 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     isShuffle: false,
   });
   const [offlineMusicas, setOfflineMusicas] = useState<Set<string>>(new Set());
+  const offlineMusicasRef = useRef(offlineMusicas);
+  const currentTrackRef = useRef(state.currentTrack);
+  isPlayingRef.current = state.isPlaying;
+  offlineMusicasRef.current = offlineMusicas;
+  currentTrackRef.current = state.currentTrack;
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -182,6 +191,124 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  const trackId = state.currentTrack?.musica.id ?? null;
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const track = currentTrackRef.current;
+    if (!track) {
+      audio.pause();
+      audio.removeAttribute('src');
+      audio.load();
+      loadedTrackId.current = null;
+      if (objectUrlRef.current) {
+        URL.revokeObjectURL(objectUrlRef.current);
+        objectUrlRef.current = null;
+      }
+      return;
+    }
+
+    if (loadedTrackId.current === track.musica.id && audio.src) return;
+
+    let cancelled = false;
+    const musica = track.musica;
+    const shouldUseOffline = Boolean(track.isOffline || offlineMusicasRef.current.has(musica.id));
+
+    const loadSource = async () => {
+      let src = musica.blobUrl;
+      if (shouldUseOffline) {
+        const offlineUrl = await getOfflineAudioUrl(musica.id);
+        if (cancelled) {
+          if (offlineUrl) URL.revokeObjectURL(offlineUrl);
+          return;
+        }
+        if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
+        objectUrlRef.current = offlineUrl;
+        src = offlineUrl || musica.blobUrl;
+      } else if (objectUrlRef.current) {
+        URL.revokeObjectURL(objectUrlRef.current);
+        objectUrlRef.current = null;
+      }
+
+      if (cancelled) return;
+      audio.src = src;
+      loadedTrackId.current = musica.id;
+      audio.currentTime = 0;
+      if (isPlayingRef.current) audio.play().catch(() => {});
+    };
+
+    loadSource();
+    return () => {
+      cancelled = true;
+    };
+  }, [trackId, getOfflineAudioUrl]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio || !trackId) return;
+    if (loadedTrackId.current !== trackId) return;
+    if (state.isPlaying) audio.play().catch(() => {});
+    else audio.pause();
+  }, [state.isPlaying, trackId]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    const keepPlaying = () => {
+      if (!isPlayingRef.current) return;
+      window.setTimeout(() => {
+        if (isPlayingRef.current && audio.paused) audio.play().catch(() => {});
+      }, 0);
+    };
+    audio.addEventListener('pause', keepPlaying);
+    return () => audio.removeEventListener('pause', keepPlaying);
+  }, []);
+
+  useEffect(() => {
+    const onVisible = () => {
+      const audio = audioRef.current;
+      if (document.visibilityState !== 'visible' || !state.isPlaying || !audio) return;
+      if (audio.paused) audio.play().catch(() => {});
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('focus', onVisible);
+    window.addEventListener('pageshow', onVisible);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('focus', onVisible);
+      window.removeEventListener('pageshow', onVisible);
+    };
+  }, [state.isPlaying]);
+
+  useEffect(() => {
+    if (typeof navigator === 'undefined' || !('mediaSession' in navigator)) return;
+    const track = state.currentTrack?.musica;
+    if (!track) {
+      navigator.mediaSession.metadata = null;
+      return;
+    }
+
+    const artwork = getCapaUrl(track);
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: track.nome,
+      artist: track.tribo?.nome || 'Música',
+      artwork: artwork ? [{ src: artwork, sizes: '512x512', type: 'image/jpeg' }] : [],
+    });
+    navigator.mediaSession.playbackState = state.isPlaying ? 'playing' : 'paused';
+    navigator.mediaSession.setActionHandler('play', () => {
+      setState((prev) => ({ ...prev, isPlaying: true }));
+      audioRef.current?.play().catch(() => {});
+    });
+    navigator.mediaSession.setActionHandler('pause', () => {
+      setState((prev) => ({ ...prev, isPlaying: false }));
+      audioRef.current?.pause();
+    });
+    navigator.mediaSession.setActionHandler('previoustrack', () => prev());
+    navigator.mediaSession.setActionHandler('nexttrack', () => next());
+  }, [state.currentTrack?.musica.id, state.currentTrack?.musica.nome, state.currentTrack?.musica.tribo?.nome, state.isPlaying, next, prev]);
+
   const value = useMemo(
     () => ({
       state,
@@ -221,7 +348,12 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   return (
     <PlayerContext.Provider value={value}>
       {children}
-      <audio ref={audioRef} playsInline preload="auto" style={{ display: 'none' }} />
+      <audio
+        ref={audioRef}
+        playsInline
+        preload="auto"
+        style={{ position: 'absolute', width: 1, height: 1, opacity: 0, pointerEvents: 'none' }}
+      />
     </PlayerContext.Provider>
   );
 }

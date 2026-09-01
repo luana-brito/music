@@ -31,8 +31,6 @@ export function Player() {
     setVolume,
     toggleRepeat,
     toggleShuffle,
-    isOffline,
-    getOfflineAudioUrl,
     play,
     audioRef,
   } = usePlayer();
@@ -52,67 +50,18 @@ export function Player() {
   const togglePlay = (event?: React.MouseEvent) => {
     event?.stopPropagation();
     if (!currentTrack) return;
-    if (state.isPlaying) {
-      pause();
-      audioRef.current?.pause();
-    } else {
-      resume();
-      audioRef.current?.play().catch(() => {});
-    }
+    if (state.isPlaying) pause();
+    else resume();
   };
-
-  useEffect(() => {
-    if (!audioRef.current) return;
-    const audio = audioRef.current;
-    let localObjectUrl: string | null = null;
-    let cancelled = false;
-
-    const loadSource = async () => {
-      if (!state.currentTrack) {
-        audio.pause();
-        audio.removeAttribute('src');
-        audio.load();
-        setDuration(0);
-        setCurrentTime(0);
-        return;
-      }
-
-      const musica = state.currentTrack.musica;
-      const shouldUseOffline = state.currentTrack.isOffline || isOffline(musica.id);
-
-      if (shouldUseOffline) {
-        const offlineUrl = await getOfflineAudioUrl(musica.id);
-        if (cancelled) {
-          if (offlineUrl) URL.revokeObjectURL(offlineUrl);
-          return;
-        }
-        localObjectUrl = offlineUrl;
-        audio.src = offlineUrl || musica.blobUrl;
-      } else {
-        audio.src = musica.blobUrl;
-      }
-
-      audio.currentTime = 0;
-      setCurrentTime(0);
-      if (state.isPlaying) audio.play().catch(() => {});
-    };
-
-    loadSource();
-    return () => {
-      cancelled = true;
-      if (localObjectUrl) URL.revokeObjectURL(localObjectUrl);
-    };
-  }, [state.currentTrack, audioRef, isOffline, getOfflineAudioUrl]);
-
-  useEffect(() => {
-    if (!audioRef.current || !state.currentTrack) return;
-    if (state.isPlaying) audioRef.current.play().catch(() => {});
-    else audioRef.current.pause();
-  }, [state.isPlaying, state.currentTrack, audioRef]);
 
   useEffect(() => {
     if (audioRef.current) audioRef.current.volume = state.volume;
   }, [state.volume, audioRef]);
+
+  useEffect(() => {
+    setCurrentTime(0);
+    setDuration(0);
+  }, [currentTrack?.id]);
 
   useEffect(() => {
     if (!audioRef.current) return;
