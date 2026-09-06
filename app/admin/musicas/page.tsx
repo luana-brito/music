@@ -284,7 +284,7 @@ export default function MusicasPage() {
           <Box sx={{ background: 'rgba(255,255,255,0.05)', borderRadius: 2, overflow: 'auto' }}>
             <Table>
               <TableHead>
-                <TableRow sx={{ background: 'rgba(255,107,0,0.12)' }}>
+                <TableRow>
                   <TableCell>Capa</TableCell>
                   <TableCell>Nome</TableCell>
                   <TableCell>Ano</TableCell>
@@ -295,7 +295,7 @@ export default function MusicasPage() {
               </TableHead>
               <TableBody>
                 {musicas?.map((musica) => (
-                  <TableRow key={musica.id} sx={{ '&:hover': { background: 'rgba(255,255,255,0.05)' } }}>
+                  <TableRow key={musica.id} sx={{ '&:hover': { background: 'var(--surface-hover)' } }}>
                     <TableCell>
                       <CoverArt name={musica.nome} color={musica.tribo?.cor} src={getCapaUrl(musica)} size={40} />
                     </TableCell>
@@ -311,11 +311,23 @@ export default function MusicasPage() {
           </Box>
         )}
 
-        <Dialog open={openDialog} onClose={closeForm} maxWidth="sm" fullWidth fullScreen={isMobile}>
+        <Dialog open={openDialog} onClose={closeForm} maxWidth="sm" fullWidth>
           <DialogTitle>{editingMusica ? 'Editar Música' : 'Nova Música'}</DialogTitle>
           <DialogContent>
             <Stack spacing={2} sx={{ mt: 2 }}>
-              <Box sx={{ border: '2px dashed rgba(255,255,255,0.2)', borderRadius: 2, p: 3, textAlign: 'center' }}>
+              <Box
+                sx={{
+                  border: '2px dashed rgba(139,92,246,0.35)',
+                  borderRadius: 2,
+                  p: 3,
+                  textAlign: 'center',
+                  transition: 'border-color 0.2s ease, background 0.2s ease',
+                  '&:hover': {
+                    borderColor: 'var(--brand-purple)',
+                    background: 'rgba(139,92,246,0.06)',
+                  },
+                }}
+              >
                 <input
                   accept={AUDIO_ACCEPT}
                   style={{ display: 'none' }}

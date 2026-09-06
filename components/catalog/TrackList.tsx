@@ -28,17 +28,19 @@ export function TrackList({ musicas, onPlay, onAdd, onRemove }: TrackListProps) 
           px: 1.5,
           pb: 1,
           color: MUTED,
-          fontSize: 12,
-          fontWeight: 700,
-          letterSpacing: 1,
+          fontFamily: 'var(--font-mono), monospace',
+          fontSize: 11,
+          fontWeight: 500,
+          letterSpacing: '1.2px',
+          textTransform: 'uppercase',
           borderBottom: '1px solid rgba(255,255,255,0.06)',
           mb: 0.8,
         }}
       >
         <Box>#</Box>
-        <Box>TÍTULO</Box>
-        <Box>TRIBO</Box>
-        <Box sx={{ textAlign: 'right' }}>ANO</Box>
+        <Box>Título</Box>
+        <Box>Tribo</Box>
+        <Box sx={{ textAlign: 'right' }}>Ano</Box>
         <Box sx={{ textAlign: 'right' }}>
           <AccessTimeIcon sx={{ fontSize: 16 }} />
         </Box>

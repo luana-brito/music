@@ -15,7 +15,7 @@ import { useMusicas, useTribos } from '@/hooks/useApi';
 import { useCatalogFilters } from '@/hooks/useCatalogFilters';
 import { usePlayer } from '@/hooks/usePlayer';
 import { useOnlineStatus } from '@/hooks/useOnlineStatus';
-import { MUTED, ORANGE, pageBg } from '@/lib/theme';
+import { MUTED, PURPLE, pageBg } from '@/lib/theme';
 import { getCapaUrl } from '@/lib/capa';
 import { PlaylistItem } from '@/types';
 
@@ -75,7 +75,7 @@ export default function PlaylistDetailPage() {
     );
   }
 
-  const accent = tracks[0]?.tribo?.cor || ORANGE;
+  const accent = tracks[0]?.tribo?.cor || PURPLE;
 
   return (
     <Box sx={{ minHeight: '100%', background: pageBg(accent) }}>

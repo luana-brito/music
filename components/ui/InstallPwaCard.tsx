@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, Typography } from '@mui/material';
 import GetAppIcon from '@mui/icons-material/GetApp';
-import { MUTED, ORANGE } from '@/lib/theme';
+import { MUTED, GREEN } from '@/lib/theme';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -102,9 +102,9 @@ export function InstallPwaCard({ compact = false }: InstallPwaCardProps) {
         Instalar aplicativo
       </Typography>
       <Typography variant="caption" sx={{ color: MUTED, display: 'block', mb: 1.5 }}>
-        Instale o Música na tela inicial para usar como aplicativo, inclusive offline nas músicas baixadas.
+        Instale o Hype na tela inicial para usar como aplicativo, inclusive offline nas músicas baixadas.
       </Typography>
-      <Button variant="contained" startIcon={<GetAppIcon />} onClick={handleInstall} sx={{ borderRadius: 999, background: ORANGE }}>
+      <Button variant="contained" startIcon={<GetAppIcon />} onClick={handleInstall} sx={{ borderRadius: 999, background: GREEN, color: '#000' }}>
         Baixar o app
       </Button>
       {help}

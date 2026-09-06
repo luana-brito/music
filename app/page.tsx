@@ -12,7 +12,7 @@ import { usePlayer } from '@/hooks/usePlayer';
 import { musicasByTribo, sortMusicas, tribosWithYearMusicas } from '@/lib/catalog';
 import { weekPlays } from '@/lib/week';
 import { getCapaUrl } from '@/lib/capa';
-import { EASE, MUTED, ORANGE, pageBg } from '@/lib/theme';
+import { EASE, MUTED, PURPLE, GREEN, GREEN_BRIGHT, GREEN_HOVER, displayTitle, pageBg } from '@/lib/theme';
 import { PlaylistItem } from '@/types';
 import { useRouter } from 'next/navigation';
 
@@ -45,7 +45,7 @@ export default function HomePage() {
     return {
       title: 'Mais tocadas da semana',
       tracks,
-      color: top?.tribo?.cor || ORANGE,
+      color: top?.tribo?.cor || PURPLE,
       cover: getCapaUrl(top),
     };
   }, [musicas]);
@@ -75,7 +75,7 @@ export default function HomePage() {
 
         {isLoading && !musicas ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-            <CircularProgress sx={{ color: ORANGE }} />
+            <CircularProgress sx={{ color: PURPLE }} />
           </Box>
         ) : error ? (
           <Alert severity="error">Erro ao carregar músicas. Verifique a conexão.</Alert>
@@ -99,7 +99,11 @@ export default function HomePage() {
                     minHeight: { xs: 220, md: 280 },
                     borderRadius: 4,
                     cursor: 'pointer',
-                    background: `linear-gradient(135deg, ${featured.color} 0%, #101010 78%)`,
+                    background: `
+                      radial-gradient(90% 80% at 8% 100%, ${PURPLE}55 0%, transparent 52%),
+                      radial-gradient(80% 70% at 100% 0%, ${GREEN}40 0%, transparent 46%),
+                      linear-gradient(180deg, ${featured.color}cc 0%, #08090D 86%)
+                    `,
                     display: 'flex',
                     alignItems: 'flex-end',
                     p: { xs: 2.5, md: 4 },
@@ -127,10 +131,10 @@ export default function HomePage() {
                     />
                   </Box>
                   <Box sx={{ position: 'relative', zIndex: 1, maxWidth: '68%' }}>
-                    <Typography sx={{ color: 'rgba(255,255,255,0.78)', fontSize: 12, fontWeight: 700, letterSpacing: 1.4, mb: 1 }}>
-                      PLAYLIST EM DESTAQUE
+                    <Typography sx={{ color: 'rgba(255,255,255,0.78)', fontFamily: 'var(--font-mono), monospace', fontSize: 11, letterSpacing: '1.2px', mb: 1 }}>
+                      Playlist em destaque
                     </Typography>
-                    <Typography sx={{ fontWeight: 800, fontSize: { xs: 28, md: 42 }, letterSpacing: '-0.04em', lineHeight: 1.05 }}>
+                    <Typography sx={{ ...displayTitle, fontSize: { xs: 30, md: 44 }, lineHeight: 1.05 }}>
                       {featured.title}
                     </Typography>
                     <Typography sx={{ color: 'rgba(255,255,255,0.78)', mt: 1, mb: 2.2, fontSize: 14 }}>
@@ -146,11 +150,11 @@ export default function HomePage() {
                       sx={{
                         width: 54,
                         height: 54,
-                        background: ORANGE,
+                        background: GREEN_BRIGHT,
                         color: '#000',
-                        boxShadow: '0 10px 24px rgba(0,0,0,0.35)',
+                        boxShadow: '0 0 22px rgba(16,185,129,0.45)',
                         transition: `transform 0.2s ${EASE}`,
-                        '&:hover': { background: '#FF8533' },
+                        '&:hover': { background: GREEN_HOVER },
                       }}
                     >
                       <PlayArrowIcon sx={{ fontSize: 30 }} />
@@ -160,7 +164,7 @@ export default function HomePage() {
               )}
 
               <Box>
-                <Typography sx={{ fontWeight: 800, fontSize: { xs: 20, md: 24 }, mb: 1.5, letterSpacing: '-0.03em' }}>
+                <Typography sx={{ ...displayTitle, fontSize: { xs: 22, md: 28 }, mb: 1.5 }}>
                   Em alta
                 </Typography>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.4 }}>
@@ -179,7 +183,7 @@ export default function HomePage() {
                         '&:hover': { background: 'rgba(255,255,255,0.06)' },
                       }}
                     >
-                      <Typography sx={{ width: 22, color: index < 3 ? ORANGE : MUTED, fontWeight: 800, fontSize: 14 }}>
+                      <Typography sx={{ width: 22, color: index < 3 ? GREEN : MUTED, fontWeight: 800, fontSize: 14 }}>
                         {index + 1}
                       </Typography>
                       <CoverArt name={musica.nome} color={musica.tribo?.cor} src={getCapaUrl(musica)} size={46} rounded={8} />
@@ -198,23 +202,17 @@ export default function HomePage() {
             </Box>
 
             <Box sx={{ mb: 2 }}>
-              <Typography sx={{ fontWeight: 800, fontSize: { xs: 20, md: 24 }, mb: 1.5, letterSpacing: '-0.03em' }}>
+              <Typography sx={{ ...displayTitle, fontSize: { xs: 22, md: 28 }, mb: 1.5 }}>
                 Playlists de {currentYear}
               </Typography>
               {yearTribos.length === 0 ? (
                 <Typography sx={{ color: MUTED }}>Nenhuma tribo com músicas em {currentYear}.</Typography>
               ) : (
                 <Box
-                  className="hide-scrollbar"
                   sx={{
-                    display: 'flex',
-                    gap: 0.5,
-                    overflowX: 'auto',
-                    pb: 1,
-                    mx: { xs: -2, md: -1.2 },
-                    px: { xs: 1, md: 0 },
-                    scrollSnapType: 'x mandatory',
-                    '& > *': { scrollSnapAlign: 'start' },
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))',
+                    gap: 1,
                   }}
                 >
                   {yearTribos.map((tribo) => {
@@ -226,6 +224,7 @@ export default function HomePage() {
                         color={tribo.cor}
                         src={tribo.logo}
                         count={tracks.length}
+                        fullWidth
                         onSelect={() =>
                           router.push(`/biblioteca?tribo=${tribo.id}&year=${currentYear}` as never)
                         }

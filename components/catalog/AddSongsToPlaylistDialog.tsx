@@ -73,7 +73,7 @@ export function AddSongsToPlaylistDialog({ open, existingIds, onAdd, onClose }: 
       maxWidth="sm"
       PaperProps={{
         sx: {
-          backgroundColor: '#181818',
+          backgroundColor: 'var(--surface)',
           backgroundImage: 'none',
           maxHeight: '85dvh',
         },

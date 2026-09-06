@@ -16,7 +16,7 @@ import PlaylistAddIcon from '@mui/icons-material/PlaylistAdd';
 import { usePlayer } from '@/hooks/usePlayer';
 import { CoverArt } from '@/components/ui/CoverArt';
 import { AddToPlaylistDialog } from '@/components/catalog/AddToPlaylistDialog';
-import { EASE, MUTED, ORANGE } from '@/lib/theme';
+import { EASE, MUTED, PURPLE, GREEN_BRIGHT, GREEN_HOVER, PROGRESS_GRADIENT, BLACK, displayTitle, monoLabel } from '@/lib/theme';
 import { getCapaUrl } from '@/lib/capa';
 import { formatDuration } from '@/lib/format';
 
@@ -43,7 +43,7 @@ export function Player() {
 
   const currentTrack = state.currentTrack?.musica;
   const capaSrc = currentTrack ? getCapaUrl(currentTrack) : null;
-  const accent = currentTrack?.tribo?.cor || ORANGE;
+  const accent = currentTrack?.tribo?.cor || PURPLE;
   const upcoming = (() => {
     if (!currentTrack) return [];
     if (state.isShuffle && state.shuffleQueue.length) {
@@ -80,23 +80,15 @@ export function Player() {
       setDuration(audio.duration || 0);
       setCurrentTime(audio.currentTime);
     };
-    const handleEnded = () => {
-      if (state.repeatMode === 'one') {
-        audio.currentTime = 0;
-        audio.play().catch(() => {});
-        return;
-      }
-      next();
-    };
     audio.addEventListener('timeupdate', handleTimeUpdate);
-    audio.addEventListener('ended', handleEnded);
     audio.addEventListener('loadedmetadata', handleTimeUpdate);
+    audio.addEventListener('durationchange', handleTimeUpdate);
     return () => {
       audio.removeEventListener('timeupdate', handleTimeUpdate);
-      audio.removeEventListener('ended', handleEnded);
       audio.removeEventListener('loadedmetadata', handleTimeUpdate);
+      audio.removeEventListener('durationchange', handleTimeUpdate);
     };
-  }, [state.repeatMode, next, audioRef]);
+  }, [audioRef]);
 
   useEffect(() => {
     if (!currentTrack || !state.isPlaying) return;
@@ -172,11 +164,8 @@ export function Player() {
             </Typography>
           </Box>
           <Box onClick={(event) => event.stopPropagation()} sx={{ display: 'flex', alignItems: 'center' }}>
-            <IconButton onClick={togglePlay} disabled={!currentTrack} sx={{ color: '#fff' }} aria-label={state.isPlaying ? 'Pausar' : 'Tocar'}>
+            <IconButton onClick={togglePlay} disabled={!currentTrack} sx={{ color: GREEN_BRIGHT }} aria-label={state.isPlaying ? 'Pausar' : 'Tocar'}>
               {state.isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
-            </IconButton>
-            <IconButton onClick={(event) => { event.stopPropagation(); next(); }} disabled={!currentTrack} sx={{ color: '#fff' }} aria-label="Próxima">
-              <SkipNextIcon />
             </IconButton>
           </Box>
           <Box
@@ -191,7 +180,7 @@ export function Player() {
               overflow: 'hidden',
             }}
           >
-            <Box sx={{ width: `${progressPct}%`, height: '100%', background: ORANGE, borderRadius: 99 }} />
+            <Box sx={{ width: `${progressPct}%`, height: '100%', background: PROGRESS_GRADIENT, boxShadow: '0 0 8px rgba(16,185,129,0.5)', borderRadius: 99 }} />
           </Box>
         </Box>
       )}
@@ -230,7 +219,7 @@ export function Player() {
 
         <Stack spacing={0.2} alignItems="center">
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
-            <IconButton size="small" onClick={toggleShuffle} sx={{ color: state.isShuffle ? ORANGE : MUTED }} aria-label="Aleatório">
+            <IconButton size="small" onClick={toggleShuffle} sx={{ color: state.isShuffle ? PURPLE : MUTED }} aria-label="Aleatório">
               <ShuffleIcon fontSize="small" />
             </IconButton>
             <IconButton onClick={prev} disabled={!currentTrack} sx={{ color: '#fff' }} aria-label="Anterior">
@@ -241,11 +230,12 @@ export function Player() {
               disabled={!currentTrack}
               aria-label={state.isPlaying ? 'Pausar' : 'Tocar'}
               sx={{
-                width: 42,
-                height: 42,
-                background: ORANGE,
+                width: 44,
+                height: 44,
+                background: GREEN_BRIGHT,
                 color: '#000',
-                '&:hover': { background: '#FF8533', transform: 'scale(1.06)' },
+                boxShadow: '0 0 18px rgba(16,185,129,0.35)',
+                '&:hover': { background: GREEN_HOVER, transform: 'scale(1.06)' },
                 transition: `transform 0.2s ${EASE}, background 0.2s ${EASE}`,
               }}
             >
@@ -254,7 +244,7 @@ export function Player() {
             <IconButton onClick={next} disabled={!currentTrack} sx={{ color: '#fff' }} aria-label="Próxima">
               <SkipNextIcon />
             </IconButton>
-            <IconButton size="small" onClick={toggleRepeat} sx={{ color: state.repeatMode !== 'none' ? ORANGE : MUTED }} aria-label="Repetir">
+            <IconButton size="small" onClick={toggleRepeat} sx={{ color: state.repeatMode !== 'none' ? PURPLE : MUTED }} aria-label="Repetir">
               {state.repeatMode === 'one' ? <RepeatOneIcon fontSize="small" /> : <RepeatIcon fontSize="small" />}
             </IconButton>
           </Box>
@@ -285,8 +275,8 @@ export function Player() {
             width: '100vw',
             height: '100dvh',
             zIndex: 2000,
-            backgroundColor: '#121212',
-            backgroundImage: `linear-gradient(180deg, ${accent} 0%, #121212 42%, #000 100%)`,
+            backgroundColor: BLACK,
+            backgroundImage: `linear-gradient(180deg, ${accent} 0%, ${BLACK} 42%, #000 100%)`,
             flexDirection: 'column',
             px: 3,
             pt: 'calc(10px + env(safe-area-inset-top, 0px))',
@@ -298,25 +288,25 @@ export function Player() {
             <IconButton onClick={() => setExpanded(false)} sx={{ color: '#fff' }} aria-label="Fechar player">
               <KeyboardArrowDownIcon />
             </IconButton>
-            <Typography sx={{ flex: 1, textAlign: 'center', fontWeight: 700, fontSize: 12, letterSpacing: 1.4, pr: 5 }}>
-              TOCANDO AGORA
+            <Typography sx={{ ...monoLabel, flex: 1, textAlign: 'center', color: MUTED, pr: 5 }}>
+              Tocando agora
             </Typography>
           </Box>
 
           <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
             <Box sx={{ width: '100%', maxWidth: 420, mx: 'auto', flex: '1 1 auto', display: 'flex', alignItems: 'center' }}>
-              <Box sx={{ width: '100%', boxShadow: '0 24px 60px rgba(0,0,0,0.5)', borderRadius: 3, overflow: 'hidden' }}>
-                <CoverArt name={currentTrack?.nome || 'B'} color={accent} src={capaSrc} size="100%" rounded={12} />
+              <Box sx={{ width: '100%', aspectRatio: '1 / 1', boxShadow: '0 28px 70px rgba(0,0,0,0.62)', borderRadius: '14px', overflow: 'hidden' }}>
+                <CoverArt name={currentTrack?.nome || 'B'} color={accent} src={capaSrc} size="100%" rounded={14} />
               </Box>
             </Box>
 
             <Box sx={{ mt: 3, mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
               <Box minWidth={0} flex={1}>
-                <Typography sx={{ fontWeight: 800, fontSize: 26, lineHeight: 1.15 }} noWrap>
+                <Typography sx={{ ...displayTitle, fontSize: 28, lineHeight: 1.15 }} noWrap>
                   {currentTrack?.nome || 'Nenhuma faixa'}
                 </Typography>
-                <Typography sx={{ color: 'rgba(255,255,255,0.72)', fontSize: 16, mt: 0.5 }} noWrap>
-                  {currentTrack ? `${currentTrack.tribo?.nome} • ${currentTrack.ano}` : 'Escolha uma música'}
+                <Typography sx={{ color: MUTED, fontSize: 16, mt: 0.5 }} noWrap>
+                  {currentTrack ? currentTrack.tribo?.nome : 'Escolha uma música'}
                 </Typography>
               </Box>
               <IconButton onClick={openAddToPlaylist} disabled={!currentTrack} sx={{ color: '#fff' }} aria-label="Adicionar à playlist">
@@ -327,7 +317,7 @@ export function Player() {
             <Box sx={{ mt: 1 }}>{progress}</Box>
 
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 1, mt: 1.5, mb: 2 }}>
-              <IconButton onClick={toggleShuffle} sx={{ color: state.isShuffle ? ORANGE : '#fff' }} aria-label="Aleatório">
+              <IconButton onClick={toggleShuffle} sx={{ color: state.isShuffle ? PURPLE : '#fff' }} aria-label="Aleatório">
                 <ShuffleIcon />
               </IconButton>
               <IconButton onClick={prev} disabled={!currentTrack} sx={{ color: '#fff' }} aria-label="Anterior">
@@ -340,9 +330,10 @@ export function Player() {
                 sx={{
                   width: 76,
                   height: 76,
-                  background: ORANGE,
+                  background: GREEN_BRIGHT,
                   color: '#000',
-                  '&:hover': { background: '#FF8533', transform: 'scale(1.04)' },
+                  boxShadow: '0 0 22px rgba(16,185,129,0.4)',
+                  '&:hover': { background: GREEN_HOVER, transform: 'scale(1.04)' },
                 }}
               >
                 {state.isPlaying ? <PauseIcon sx={{ fontSize: 40 }} /> : <PlayArrowIcon sx={{ fontSize: 40 }} />}
@@ -350,14 +341,14 @@ export function Player() {
               <IconButton onClick={next} disabled={!currentTrack} sx={{ color: '#fff' }} aria-label="Próxima">
                 <SkipNextIcon sx={{ fontSize: 42 }} />
               </IconButton>
-              <IconButton onClick={toggleRepeat} sx={{ color: state.repeatMode !== 'none' ? ORANGE : '#fff' }} aria-label="Repetir">
+              <IconButton onClick={toggleRepeat} sx={{ color: state.repeatMode !== 'none' ? PURPLE : '#fff' }} aria-label="Repetir">
                 {state.repeatMode === 'one' ? <RepeatOneIcon /> : <RepeatIcon />}
               </IconButton>
             </Box>
 
             {upcoming.length > 0 && (
               <Box sx={{ overflowY: 'auto', maxHeight: 140 }}>
-                <Typography sx={{ fontWeight: 700, fontSize: 12, letterSpacing: 1, color: MUTED, mb: 1 }}>A SEGUIR</Typography>
+                <Typography sx={{ fontFamily: 'var(--font-mono), monospace', fontSize: 11, letterSpacing: '1.2px', color: MUTED, mb: 1 }}>A seguir</Typography>
                 {upcoming.slice(0, 3).map((item) => (
                   <Box
                     key={item.musica.id}

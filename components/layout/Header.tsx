@@ -6,7 +6,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import { useSession } from 'next-auth/react';
-import { MUTED } from '@/lib/theme';
+import { MUTED, displayTitle } from '@/lib/theme';
 
 interface HeaderProps {
   title?: string;
@@ -26,7 +26,7 @@ export function Header({ title, searchQuery = '', onSearch, searchPlaceholder = 
         position: 'sticky',
         top: 0,
         zIndex: 20,
-        background: 'linear-gradient(180deg, rgba(18,18,18,0.82) 0%, rgba(18,18,18,0.55) 70%, rgba(18,18,18,0) 100%)',
+        background: 'linear-gradient(180deg, rgba(16,10,24,0.88) 0%, rgba(16,10,24,0.5) 70%, rgba(8,9,13,0) 100%)',
         backdropFilter: 'blur(18px)',
         px: { xs: 2, md: 4 },
         pt: { xs: 1.5, md: 2.2 },
@@ -49,8 +49,8 @@ export function Header({ title, searchQuery = '', onSearch, searchPlaceholder = 
             display: { xs: 'inline-flex', md: 'none' },
             color: '#fff',
             background: 'rgba(255,255,255,0.08)',
-            width: 40,
-            height: 40,
+            width: 44,
+            height: 44,
             '&:hover': { background: 'rgba(255,255,255,0.14)' },
           }}
         >
@@ -59,9 +59,8 @@ export function Header({ title, searchQuery = '', onSearch, searchPlaceholder = 
         {showTopRow && (
           <Box
             sx={{
-              fontWeight: 800,
-              fontSize: { xs: 24, md: 32 },
-              letterSpacing: '-0.04em',
+              ...displayTitle,
+              fontSize: { xs: 28, md: 36 },
               flex: 1,
               minWidth: 0,
               overflow: 'hidden',

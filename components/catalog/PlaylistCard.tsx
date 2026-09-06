@@ -4,7 +4,7 @@ import React from 'react';
 import { Box, IconButton, Typography } from '@mui/material';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import { CoverArt } from '@/components/ui/CoverArt';
-import { EASE, MUTED, ORANGE } from '@/lib/theme';
+import { EASE, MUTED, GREEN_BRIGHT, GREEN_HOVER } from '@/lib/theme';
 
 interface PlaylistCardProps {
   name: string;
@@ -62,13 +62,13 @@ export function PlaylistCard({ name, color, src, count, selected, fullWidth, onS
             bottom: 10,
             width: 46,
             height: 46,
-            background: ORANGE,
+            background: GREEN_BRIGHT,
             color: '#000',
             opacity: { xs: 1, md: 0 },
             transform: { xs: 'none', md: 'translateY(8px)' },
             transition: `opacity 0.22s ${EASE}, transform 0.22s ${EASE}, background 0.2s ${EASE}`,
             boxShadow: '0 10px 24px rgba(0,0,0,0.4)',
-            '&:hover': { background: '#FF8533', transform: 'scale(1.06)' },
+            '&:hover': { background: GREEN_HOVER, transform: 'scale(1.06)' },
           }}
         >
           <PlayArrowIcon />

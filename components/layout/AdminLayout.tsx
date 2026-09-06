@@ -24,7 +24,7 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { usePathname, useRouter } from 'next/navigation';
 import { signOut } from 'next-auth/react';
-import { BLACK, ELEVATED, MUTED, ORANGE, ORANGE_SOFT } from '@/lib/theme';
+import { BLACK, ELEVATED, MUTED, PURPLE, NAV_ACTIVE } from '@/lib/theme';
 
 const DRAWER_WIDTH = 250;
 
@@ -45,25 +45,20 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
 
   const drawer = (
     <Box sx={{ width: DRAWER_WIDTH, height: '100%', background: ELEVATED, display: 'flex', flexDirection: 'column' }}>
-      <Box sx={{ p: 2.5, display: 'flex', alignItems: 'center', gap: 1.2 }}>
+      <Box sx={{ p: 2.5, display: 'flex', alignItems: 'center' }}>
         <Box
+          component="img"
+          src="/brand/hype-logo.png"
+          alt="Hype"
           sx={{
-            width: 32,
-            height: 32,
-            borderRadius: '50%',
-            background: `linear-gradient(135deg, ${ORANGE}, #9a3a00)`,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontWeight: 800,
-            color: '#000',
+            height: 36,
+            width: 'auto',
+            maxWidth: 150,
+            objectFit: 'contain',
+            filter: 'brightness(0) invert(1)',
+            display: 'block',
           }}
-        >
-          ♪
-        </Box>
-        <Typography variant="h6" sx={{ fontWeight: 800, fontSize: 16 }}>
-          Música
-        </Typography>
+        />
       </Box>
       <List sx={{ flex: 1 }}>
         {menuItems.map((item) => {
@@ -80,12 +75,13 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
                 mx: 1,
                 borderRadius: 1.5,
                 color: active ? '#fff' : MUTED,
-                backgroundColor: active ? ORANGE_SOFT : 'transparent',
-                '&.Mui-selected': { backgroundColor: ORANGE_SOFT },
-                '&:hover': { background: 'rgba(255,255,255,0.06)', color: '#fff' },
+                background: active ? NAV_ACTIVE : 'transparent',
+                boxShadow: active ? 'inset 0 0 0 1px rgba(139,92,246,0.4)' : 'none',
+                '&.Mui-selected': { background: NAV_ACTIVE },
+                '&:hover': { background: active ? NAV_ACTIVE : 'rgba(255,255,255,0.06)', color: '#fff' },
               }}
             >
-              <ListItemIcon sx={{ minWidth: 40, color: active ? ORANGE : 'inherit' }}>
+              <ListItemIcon sx={{ minWidth: 40, color: active ? PURPLE : 'inherit' }}>
                 <item.icon />
               </ListItemIcon>
               <ListItemText primary={item.label} primaryTypographyProps={{ fontWeight: active ? 700 : 600 }} />
@@ -165,7 +161,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
           width: '100%',
           overflowX: 'hidden',
           overflowY: 'auto',
-          background: '#121212',
+          background: BLACK,
           pt: isMobile ? 'calc(56px + env(safe-area-inset-top, 0px))' : 0,
         }}
       >

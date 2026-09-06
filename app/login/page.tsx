@@ -5,7 +5,7 @@ import { Alert, Box, Button, Card, CircularProgress, Stack, TextField, Typograph
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import { BLACK, ELEVATED, MUTED, ORANGE } from '@/lib/theme';
+import { MUTED, SURFACE } from '@/lib/theme';
 
 function safeCallbackUrl(value: string | null) {
   if (!value || !value.startsWith('/') || value.startsWith('//') || value.includes('\\')) {
@@ -63,7 +63,8 @@ function LoginForm() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: `radial-gradient(circle at top, rgba(255,107,0,0.18), ${BLACK} 58%)`,
+        background:
+          'radial-gradient(110% 80% at 15% 95%, rgba(139,92,246,0.22) 0%, rgba(139,92,246,0) 55%), radial-gradient(120% 90% at 90% 5%, rgba(16,185,129,0.16) 0%, rgba(16,185,129,0) 50%), linear-gradient(160deg, #100A18 0%, #08090D 70%)',
         padding: '16px',
       }}
     >
@@ -71,8 +72,8 @@ function LoginForm() {
         sx={{
           width: '100%',
           maxWidth: 420,
-          background: ELEVATED,
-          border: '1px solid rgba(255,255,255,0.08)',
+          background: SURFACE,
+          border: '1px solid var(--border-subtle)',
           padding: { xs: '28px 20px', sm: '40px 28px' },
           borderRadius: 4,
         }}
@@ -87,26 +88,22 @@ function LoginForm() {
           </Button>
           <Box sx={{ textAlign: 'center' }}>
             <Box
+              component="img"
+              src="/brand/hype-logo.png"
+              alt="Hype"
               sx={{
-                width: 56,
-                height: 56,
-                borderRadius: '50%',
-                background: `linear-gradient(135deg, ${ORANGE}, #9a3a00)`,
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontWeight: 800,
-                fontSize: 26,
-                color: '#000',
-                mb: 1.5,
+                height: 96,
+                width: 'auto',
+                maxWidth: 240,
+                objectFit: 'contain',
+                filter: 'brightness(0) invert(1) drop-shadow(0 0 10px rgba(139,92,246,0.25))',
+                display: 'block',
+                mx: 'auto',
+                pointerEvents: 'none',
+                userSelect: 'none',
               }}
-            >
-              ♪
-            </Box>
-            <Typography variant="h5" sx={{ fontWeight: 800 }}>
-              Entrar
-            </Typography>
-            <Typography variant="subtitle2" sx={{ color: MUTED, mt: 1 }}>
+            />
+            <Typography variant="subtitle2" sx={{ color: MUTED, mt: 2 }}>
               Acesso à área administrativa
             </Typography>
           </Box>
@@ -142,7 +139,7 @@ function LoginForm() {
               />
 
               <Button type="submit" variant="contained" fullWidth disabled={loading || !email || !senha} sx={{ py: 1.4, fontSize: 16 }}>
-                {loading ? <CircularProgress size={24} sx={{ color: '#000' }} /> : 'Entrar'}
+                {loading ? <CircularProgress size={24} sx={{ color: '#fff' }} /> : 'Entrar'}
               </Button>
             </Stack>
           </form>

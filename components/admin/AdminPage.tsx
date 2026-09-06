@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Box, Typography } from '@mui/material';
+import { displayTitle } from '@/lib/theme';
 
 interface AdminPageProps {
   title: string;
@@ -33,7 +34,7 @@ export function AdminPage({ title, action, children }: AdminPageProps) {
       >
         <Typography
           component="h1"
-          sx={{ fontWeight: 800, fontSize: { xs: 22, sm: 26, md: 32 }, letterSpacing: '-0.03em', m: 0 }}
+          sx={{ ...displayTitle, fontSize: { xs: 26, sm: 30, md: 36 }, m: 0 }}
         >
           {title}
         </Typography>

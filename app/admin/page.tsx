@@ -8,6 +8,7 @@ import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { AdminPage } from '@/components/admin/AdminPage';
 import { useMusicas, useTribos } from '@/hooks/useApi';
+import { PURPLE, GREEN, SURFACE, displayTitle, monoLabel } from '@/lib/theme';
 
 export default function DashboardPage() {
   const { data: musicas, isLoading: musicasLoading } = useMusicas();
@@ -17,15 +18,15 @@ export default function DashboardPage() {
   const totalTribos = tribos?.length || 0;
   const totalYears = musicas ? new Set(musicas.map((m) => m.ano)).size : 0;
 
-  const StatCard = ({ title, value, icon: Icon, color }: any) => (
-    <Card sx={{ background: 'rgba(255,107,0,0.1)', border: '1px solid rgba(255,107,0,0.28)' }}>
+  const StatCard = ({ title, value, icon: Icon, color, accent }: { title: string; value: number; icon: typeof MusicNoteIcon; color: string; accent: string }) => (
+    <Card sx={{ background: SURFACE, border: '1px solid var(--border-subtle)', borderLeft: `3px solid ${accent}` }}>
       <CardContent>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <Box>
-            <Typography color="textSecondary" gutterBottom>
+            <Typography sx={{ ...monoLabel, color: 'text.secondary', mb: 1 }}>
               {title}
             </Typography>
-            <Typography variant="h5" sx={{ fontWeight: 700, color }}>
+            <Typography sx={{ ...displayTitle, fontSize: 40, lineHeight: 1, color }}>
               {value}
             </Typography>
           </Box>
@@ -50,7 +51,8 @@ export default function DashboardPage() {
                   title="Total de Músicas"
                   value={totalMusicas}
                   icon={MusicNoteIcon}
-                  color="#FF6B00"
+                  color={PURPLE}
+                  accent={PURPLE}
                 />
               </Grid>
               <Grid item xs={12} sm={6} md={4}>
@@ -58,7 +60,8 @@ export default function DashboardPage() {
                   title="Total de Tribos"
                   value={totalTribos}
                   icon={GroupIcon}
-                  color="#4caf50"
+                  color={GREEN}
+                  accent={GREEN}
                 />
               </Grid>
               <Grid item xs={12} sm={6} md={4}>
@@ -66,7 +69,8 @@ export default function DashboardPage() {
                   title="Anos Catalogados"
                   value={totalYears}
                   icon={CalendarMonthIcon}
-                  color="#ff9800"
+                  color="#3B82F6"
+                  accent="#3B82F6"
                 />
               </Grid>
             </Grid>

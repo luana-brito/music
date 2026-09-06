@@ -7,7 +7,7 @@ import PlaylistAddIcon from '@mui/icons-material/PlaylistAdd';
 import CloseIcon from '@mui/icons-material/Close';
 import { Musica } from '@/types';
 import { CoverArt } from '@/components/ui/CoverArt';
-import { EASE, HOVER, MUTED, ORANGE } from '@/lib/theme';
+import { EASE, HOVER, MUTED, GREEN, GREEN_BRIGHT, SURFACE } from '@/lib/theme';
 import { getCapaUrl } from '@/lib/capa';
 import { formatDuration } from '@/lib/format';
 
@@ -28,9 +28,10 @@ export function MusicaCard({ musica, onPlay, onAdd, onRemove, isPlaying, isPause
     <Card
       onClick={() => onPlay(musica)}
       sx={{
-        background: active ? 'rgba(255,107,0,0.1)' : 'transparent',
+        background: active ? SURFACE : 'transparent',
         boxShadow: 'none',
         borderRadius: 1.6,
+        borderLeft: active ? '3px solid var(--brand-green)' : '3px solid transparent',
         cursor: 'pointer',
         transition: `background 0.18s ${EASE}`,
         '&:hover': {
@@ -58,7 +59,7 @@ export function MusicaCard({ musica, onPlay, onAdd, onRemove, isPlaying, isPause
                   key={i}
                   sx={{
                     width: 3,
-                    bgcolor: ORANGE,
+                    bgcolor: GREEN,
                     animation: 'eq 0.8s ease-in-out infinite',
                     animationDelay: `${i * 0.15}s`,
                     '@keyframes eq': {
@@ -71,7 +72,7 @@ export function MusicaCard({ musica, onPlay, onAdd, onRemove, isPlaying, isPause
             </Box>
           ) : (
             <>
-              <Typography className="index-number" sx={{ color: active ? ORANGE : MUTED, fontSize: 14, fontWeight: 600 }}>
+              <Typography className="index-number" sx={{ color: active ? GREEN : MUTED, fontSize: 14, fontWeight: 600 }}>
                 {index ?? ''}
               </Typography>
               <PlayArrowIcon
@@ -91,7 +92,7 @@ export function MusicaCard({ musica, onPlay, onAdd, onRemove, isPlaying, isPause
         <Stack direction="row" spacing={1.5} alignItems="center" minWidth={0}>
           <CoverArt name={musica.nome} color={musica.tribo?.cor} src={getCapaUrl(musica)} size={40} rounded={6} />
           <Box minWidth={0}>
-            <Typography noWrap sx={{ fontWeight: 600, fontSize: 15, color: active ? ORANGE : '#fff' }}>
+            <Typography noWrap sx={{ fontWeight: 600, fontSize: 15, color: active ? GREEN_BRIGHT : '#fff' }}>
               {musica.nome}
             </Typography>
             <Typography noWrap variant="caption" sx={{ color: MUTED, display: { xs: 'block', md: 'none' } }}>
@@ -104,11 +105,11 @@ export function MusicaCard({ musica, onPlay, onAdd, onRemove, isPlaying, isPause
           {musica.tribo?.nome}
         </Typography>
 
-        <Typography sx={{ color: MUTED, fontSize: 14, display: { xs: 'none', md: 'block' }, textAlign: 'right' }}>
+        <Typography sx={{ color: MUTED, fontSize: 14, display: { xs: 'none', md: 'block' }, textAlign: 'right', fontFamily: 'var(--font-mono), monospace' }}>
           {musica.ano}
         </Typography>
 
-        <Typography sx={{ color: MUTED, fontSize: 13, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
+        <Typography sx={{ color: MUTED, fontSize: 13, textAlign: 'right', fontFamily: 'var(--font-mono), monospace', fontVariantNumeric: 'tabular-nums' }}>
           {formatDuration(musica.duracao)}
         </Typography>
         <Box onClick={(event) => event.stopPropagation()} sx={{ display: 'flex', justifyContent: 'flex-end' }}>

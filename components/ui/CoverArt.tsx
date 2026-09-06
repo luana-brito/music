@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Box } from '@mui/material';
-import { ORANGE } from '@/lib/theme';
+import { PURPLE } from '@/lib/theme';
 
 interface CoverArtProps {
   name: string;
@@ -16,7 +16,7 @@ interface CoverArtProps {
 export function CoverArt({ name, color, src, size = 48, rounded = 8, shadow = true }: CoverArtProps) {
   const [broken, setBroken] = useState(false);
   const letter = (name || '?').charAt(0).toUpperCase();
-  const accent = color || ORANGE;
+  const accent = color || PURPLE;
   const showImage = Boolean(src) && !broken;
   const numericSize = typeof size === 'number' ? size : undefined;
 
@@ -32,7 +32,7 @@ export function CoverArt({ name, color, src, size = 48, rounded = 8, shadow = tr
         minWidth: numericSize || 0,
         aspectRatio: numericSize ? undefined : '1 / 1',
         borderRadius: `${rounded}px`,
-        background: `linear-gradient(145deg, ${accent} 0%, #141414 88%)`,
+        background: `linear-gradient(165deg, ${accent} 0%, #08090D 88%)`,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',

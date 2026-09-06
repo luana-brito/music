@@ -11,7 +11,7 @@ import { useUserPlaylists } from '@/hooks/useUserPlaylists';
 import { useMusicas, useTribos } from '@/hooks/useApi';
 import { useCatalogFilters } from '@/hooks/useCatalogFilters';
 import { usePlayer } from '@/hooks/usePlayer';
-import { MUTED, ORANGE, pageBg } from '@/lib/theme';
+import { MUTED, PURPLE, pageBg } from '@/lib/theme';
 import { Musica, PlaylistItem, Tribo } from '@/types';
 import { UserPlaylist } from '@/lib/userPlaylists';
 
@@ -106,7 +106,7 @@ export default function PlaylistsPage() {
           <Box
             sx={{
               display: 'grid',
-              gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(3, 1fr)', md: 'repeat(4, 1fr)', lg: 'repeat(5, 1fr)' },
+              gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))',
               gap: 1,
             }}
           >
@@ -116,7 +116,7 @@ export default function PlaylistsPage() {
                 <PlaylistCard
                   key={playlist.id}
                   name={playlist.nome}
-                  color={ORANGE}
+                  color={PURPLE}
                   count={playlist.musicaIds.length}
                   src={tracks[0] ? tracks[0].capa || tracks[0].tribo?.logo : null}
                   fullWidth
@@ -137,7 +137,7 @@ export default function PlaylistsPage() {
         onClose={() => setOpen(false)}
         fullWidth
         maxWidth="xs"
-        PaperProps={{ sx: { backgroundColor: '#181818', backgroundImage: 'none', borderRadius: 3 } }}
+        PaperProps={{ sx: { backgroundColor: 'var(--surface)', backgroundImage: 'none', borderRadius: 3 } }}
       >
         <DialogTitle>Nova playlist</DialogTitle>
         <DialogContent>

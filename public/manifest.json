@@ -1,30 +1,30 @@
 {
-  "name": "Música",
-  "short_name": "Música",
-  "description": "Música — aplicativo de músicas e paródias",
+  "name": "Hype",
+  "short_name": "Hype",
+  "description": "Hype — aplicativo de músicas e paródias",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#000000",
-  "theme_color": "#000000",
+  "background_color": "#08090D",
+  "theme_color": "#8B5CF6",
   "lang": "pt-BR",
   "categories": ["music", "entertainment"],
   "icons": [
     {
-      "src": "/icon/192",
+      "src": "/icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icon/512",
+      "src": "/icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icon/512",
+      "src": "/icons/icon-maskable-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"

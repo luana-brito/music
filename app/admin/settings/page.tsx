@@ -12,7 +12,7 @@ export default function AdminSettingsPage() {
       <AdminPage title="Configurações">
 
         <Stack spacing={3}>
-          <Card sx={{ background: 'rgba(255,107,0,0.1)', border: '1px solid rgba(255,107,0,0.28)' }}>
+          <Card sx={{ background: 'var(--surface)', border: '1px solid var(--border-subtle)' }}>
             <CardContent>
               <Typography variant="h6" sx={{ mb: 1 }}>
                 Segurança
@@ -26,7 +26,7 @@ export default function AdminSettingsPage() {
             </CardContent>
           </Card>
 
-          <Card sx={{ background: 'rgba(255,107,0,0.1)', border: '1px solid rgba(255,107,0,0.28)' }}>
+          <Card sx={{ background: 'var(--surface)', border: '1px solid var(--border-subtle)' }}>
             <CardContent>
               <Typography variant="h6" sx={{ mb: 1 }}>
                 Vercel Blob
@@ -40,7 +40,7 @@ export default function AdminSettingsPage() {
             </CardContent>
           </Card>
 
-          <Card sx={{ background: 'rgba(255,107,0,0.1)', border: '1px solid rgba(255,107,0,0.28)' }}>
+          <Card sx={{ background: 'var(--surface)', border: '1px solid var(--border-subtle)' }}>
             <CardContent>
               <Typography variant="h6" sx={{ mb: 1 }}>
                 Banco de Dados

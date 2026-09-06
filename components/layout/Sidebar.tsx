@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Box, IconButton, List, ListItemButton, ListItemIcon, ListItemText, Typography } from '@mui/material';
+import { Box, List, ListItemButton, ListItemIcon, ListItemText, Typography } from '@mui/material';
 import HomeIcon from '@mui/icons-material/Home';
 import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
 import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
@@ -10,12 +10,13 @@ import LibraryMusicIcon from '@mui/icons-material/LibraryMusic';
 import LibraryMusicOutlinedIcon from '@mui/icons-material/LibraryMusicOutlined';
 import QueueMusicIcon from '@mui/icons-material/QueueMusic';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
+import AdminPanelSettingsOutlinedIcon from '@mui/icons-material/AdminPanelSettingsOutlined';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useUserPlaylists } from '@/hooks/useUserPlaylists';
-import { APP_DEVELOPER, APP_NAME, APP_VERSION } from '@/lib/appInfo';
-import { EASE, ELEVATED, MUTED, ORANGE } from '@/lib/theme';
+import { APP_DEVELOPER, APP_VERSION } from '@/lib/appInfo';
+import { EASE, ELEVATED, MUTED, TEXT, NAV_ACTIVE } from '@/lib/theme';
 
 const navItems = [
   { label: 'Início', href: '/', icon: HomeOutlinedIcon, activeIcon: HomeIcon },
@@ -45,34 +46,31 @@ export function Sidebar() {
       <Box
         sx={{
           background: ELEVATED,
+          backgroundImage: 'radial-gradient(120% 80% at 0% 0%, rgba(139,92,246,0.16), transparent 62%)',
           borderRadius: 2.4,
           px: 1.5,
-          py: 1.6,
+          py: 1.8,
           display: 'flex',
           alignItems: 'center',
-          gap: 1.2,
+          justifyContent: 'center',
         }}
       >
-        <IconButton
-          href={adminHref}
-          component="a"
-          aria-label="Admin"
+        <Box
+          component="img"
+          src="/brand/hype-logo.png"
+          alt="Hype"
           sx={{
-            width: 42,
-            height: 42,
-            background: `linear-gradient(135deg, ${ORANGE}, #9a3a00)`,
-            color: '#000',
-            '&:hover': { background: ORANGE, transform: 'scale(1.04)' },
+            height: 52,
+            width: 'auto',
+            maxWidth: '100%',
+            objectFit: 'contain',
+            filter: 'brightness(0) invert(1) drop-shadow(0 0 8px rgba(139,92,246,0.25))',
+            display: 'block',
+            mx: 'auto',
+            pointerEvents: 'none',
+            userSelect: 'none',
           }}
-        >
-          <AdminPanelSettingsIcon />
-        </IconButton>
-        <Box minWidth={0}>
-          <Typography sx={{ fontWeight: 800, fontSize: 15, lineHeight: 1.1, letterSpacing: '-0.03em' }}>
-            {APP_NAME}
-          </Typography>
-          <Typography sx={{ color: MUTED, fontSize: 12 }}>v{APP_VERSION}</Typography>
-        </Box>
+        />
       </Box>
 
       <Box sx={{ background: ELEVATED, borderRadius: 2.4, py: 1 }}>
@@ -89,12 +87,13 @@ export function Sidebar() {
                   mx: 1,
                   my: 0.25,
                   borderRadius: 1.5,
-                  color: active ? '#fff' : MUTED,
-                  background: active ? 'rgba(255,255,255,0.06)' : 'transparent',
-                  '&:hover': { color: '#fff', background: 'rgba(255,255,255,0.08)' },
+                  color: active ? TEXT : MUTED,
+                  background: active ? NAV_ACTIVE : 'transparent',
+                  boxShadow: active ? 'inset 0 0 0 1px rgba(139,92,246,0.4)' : 'none',
+                  '&:hover': { color: TEXT, background: active ? NAV_ACTIVE : 'rgba(255,255,255,0.06)' },
                 }}
               >
-                <ListItemIcon sx={{ minWidth: 40, color: active ? ORANGE : 'inherit' }}>
+                <ListItemIcon sx={{ minWidth: 40, color: active ? TEXT : MUTED }}>
                   <Icon />
                 </ListItemIcon>
                 <ListItemText
@@ -104,12 +103,31 @@ export function Sidebar() {
               </ListItemButton>
             );
           })}
+          <ListItemButton
+            component={Link}
+            href={adminHref as never}
+            sx={{
+              mx: 1,
+              my: 0.25,
+              borderRadius: 1.5,
+              color: MUTED,
+              '&:hover': { color: TEXT, background: 'rgba(255,255,255,0.06)' },
+            }}
+          >
+            <ListItemIcon sx={{ minWidth: 40, color: MUTED }}>
+              {mounted && session?.user?.role === 'ADMIN' ? <AdminPanelSettingsIcon /> : <AdminPanelSettingsOutlinedIcon />}
+            </ListItemIcon>
+            <ListItemText
+              primary="Administração"
+              primaryTypographyProps={{ fontWeight: 600, fontSize: 15 }}
+            />
+          </ListItemButton>
         </List>
       </Box>
 
       <Box sx={{ background: ELEVATED, borderRadius: 2.4, py: 1, flex: 1, overflow: 'auto' }}>
-        <Typography sx={{ px: 2, py: 1, color: MUTED, fontSize: 11, fontWeight: 700, letterSpacing: 0.9 }}>
-          SUAS PLAYLISTS
+        <Typography sx={{ px: 2, py: 1, color: MUTED, fontFamily: 'var(--font-mono), monospace', fontSize: 11, fontWeight: 500, letterSpacing: '1.2px' }}>
+          Suas playlists
         </Typography>
         <List disablePadding>
           {ready && playlists.length === 0 && (
@@ -127,10 +145,11 @@ export function Sidebar() {
                 sx={{
                   mx: 1,
                   borderRadius: 1.5,
-                  color: active ? '#fff' : MUTED,
-                  background: active ? 'rgba(255,255,255,0.06)' : 'transparent',
+                  color: active ? TEXT : MUTED,
+                  background: active ? NAV_ACTIVE : 'transparent',
+                  boxShadow: active ? 'inset 0 0 0 1px rgba(139,92,246,0.4)' : 'none',
                   transition: `background 0.2s ${EASE}, color 0.2s ${EASE}`,
-                  '&:hover': { color: '#fff', background: 'rgba(255,255,255,0.08)' },
+                  '&:hover': { color: TEXT, background: active ? NAV_ACTIVE : 'rgba(255,255,255,0.06)' },
                 }}
               >
                 <ListItemText
@@ -144,7 +163,7 @@ export function Sidebar() {
           })}
         </List>
         <Typography sx={{ px: 2, pt: 1.5, pb: 0.5, color: MUTED, fontSize: 11 }}>
-          Desenvolvido pelo {APP_DEVELOPER}
+          Desenvolvido pelo {APP_DEVELOPER} · v{APP_VERSION}
         </Typography>
       </Box>
     </Box>

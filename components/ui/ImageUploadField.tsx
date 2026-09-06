@@ -17,7 +17,18 @@ interface ImageUploadFieldProps {
 
 export function ImageUploadField({ id, label, hint, previewUrl, uploading, onFile, onClear }: ImageUploadFieldProps) {
   return (
-    <Box sx={{ border: '2px dashed rgba(255,255,255,0.2)', borderRadius: 2, p: 2 }}>
+    <Box
+      sx={{
+        border: '2px dashed rgba(139,92,246,0.35)',
+        borderRadius: 2,
+        p: 2,
+        transition: 'border-color 0.2s ease, background 0.2s ease',
+        '&:hover': {
+          borderColor: 'var(--brand-purple)',
+          background: 'rgba(139,92,246,0.06)',
+        },
+      }}
+    >
       <input
         accept="image/jpeg,image/png,image/webp,image/gif,.jpg,.jpeg,.png,.webp,.gif"
         style={{ display: 'none' }}

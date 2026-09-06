@@ -15,10 +15,10 @@ import {
 } from '@mui/material';
 import CheckIcon from '@mui/icons-material/Check';
 import { useUserPlaylists } from '@/hooks/useUserPlaylists';
-import { MUTED } from '@/lib/theme';
+import { MUTED, SURFACE } from '@/lib/theme';
 
 const paperSx = {
-  backgroundColor: '#181818',
+  backgroundColor: SURFACE,
   backgroundImage: 'none',
 };
 

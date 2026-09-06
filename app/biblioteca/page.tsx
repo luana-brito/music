@@ -10,7 +10,7 @@ import { AddToPlaylistDialog } from '@/components/catalog/AddToPlaylistDialog';
 import { useMusicas, useTribos } from '@/hooks/useApi';
 import { useCatalogFilters } from '@/hooks/useCatalogFilters';
 import { usePlayer } from '@/hooks/usePlayer';
-import { MUTED, ORANGE, pageBg } from '@/lib/theme';
+import { MUTED, PURPLE, pageBg } from '@/lib/theme';
 import { Musica, PlaylistItem } from '@/types';
 
 function BibliotecaContent() {
@@ -53,7 +53,7 @@ function BibliotecaContent() {
       <Box sx={{ px: { xs: 2, md: 4 }, pb: 4 }}>
         {isLoading && !musicas ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-            <CircularProgress sx={{ color: ORANGE }} />
+            <CircularProgress sx={{ color: PURPLE }} />
           </Box>
         ) : error ? (
           <Alert severity="error">Erro ao carregar músicas.</Alert>

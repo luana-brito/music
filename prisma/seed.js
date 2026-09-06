@@ -18,10 +18,10 @@ async function main() {
   });
 
   const tribos = [
-    { id: 'tribo-1', nome: 'Front', cor: '#FF6B6B' },
-    { id: 'tribo-2', nome: 'Break', cor: '#4ECDC4' },
-    { id: 'tribo-3', nome: 'Set', cor: '#45B7D1' },
-    { id: 'tribo-4', nome: 'Drop', cor: '#FFA502' },
+    { id: 'tribo-1', nome: 'Front', cor: '#F43F5E' },
+    { id: 'tribo-2', nome: 'Break', cor: '#22D3EE' },
+    { id: 'tribo-3', nome: 'Set', cor: '#60A5FA' },
+    { id: 'tribo-4', nome: 'Drop', cor: '#F472B6' },
   ];
 
   for (const tribo of tribos) {

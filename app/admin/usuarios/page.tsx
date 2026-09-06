@@ -199,7 +199,7 @@ export default function UsuariosPage() {
           <Box sx={{ background: 'rgba(255,255,255,0.05)', borderRadius: 2, overflow: 'auto' }}>
             <Table>
               <TableHead>
-                <TableRow sx={{ background: 'rgba(255,107,0,0.12)' }}>
+                <TableRow>
                   <TableCell>Nome</TableCell>
                   <TableCell>Email</TableCell>
                   <TableCell>Criado em</TableCell>
@@ -208,7 +208,7 @@ export default function UsuariosPage() {
               </TableHead>
               <TableBody>
                 {usuarios?.map((usuario) => (
-                  <TableRow key={usuario.id} sx={{ '&:hover': { background: 'rgba(255,255,255,0.05)' } }}>
+                  <TableRow key={usuario.id} sx={{ '&:hover': { background: 'var(--surface-hover)' } }}>
                     <TableCell>{usuario.nome}</TableCell>
                     <TableCell>{usuario.email}</TableCell>
                     <TableCell>{new Date(usuario.createdAt).toLocaleDateString('pt-BR')}</TableCell>
@@ -220,7 +220,7 @@ export default function UsuariosPage() {
           </Box>
         )}
 
-        <Dialog open={openDialog} onClose={closeForm} fullScreen={isMobile} fullWidth maxWidth="sm">
+        <Dialog open={openDialog} onClose={closeForm} fullWidth maxWidth="sm">
           <DialogTitle>{editingUsuario ? 'Editar Usuário' : 'Novo Usuário Administrativo'}</DialogTitle>
           <DialogContent>
             <Stack spacing={2} sx={{ mt: 2 }}>

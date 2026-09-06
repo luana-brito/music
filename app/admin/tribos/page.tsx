@@ -36,6 +36,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Tribo } from '@/types';
 import { MAX_UPLOAD_LABEL } from '@/lib/uploadLimits';
+import { PURPLE } from '@/lib/theme';
 
 const triboSchema = z.object({
   nome: z.string().min(1, 'Nome é obrigatório'),
@@ -60,7 +61,7 @@ export default function TribosPage() {
   const [actionError, setActionError] = useState('');
   const { register, handleSubmit, reset } = useForm<TriboInput>({
     resolver: zodResolver(triboSchema),
-    defaultValues: { nome: '', cor: '#FF6B00' },
+    defaultValues: { nome: '', cor: PURPLE },
   });
 
   const isSaving = isCreating || isUpdating;
@@ -70,7 +71,7 @@ export default function TribosPage() {
     setEditingTribo(null);
     setLogoUrl('');
     setUploadError('');
-    reset({ nome: '', cor: '#FF6B00' });
+    reset({ nome: '', cor: PURPLE });
   };
 
   const openCreate = () => {
@@ -78,7 +79,7 @@ export default function TribosPage() {
     setLogoUrl('');
     setUploadError('');
     setActionError('');
-    reset({ nome: '', cor: '#FF6B00' });
+    reset({ nome: '', cor: PURPLE });
     setOpenDialog(true);
   };
 
@@ -87,7 +88,7 @@ export default function TribosPage() {
     setLogoUrl(tribo.logo || '');
     setUploadError('');
     setActionError('');
-    reset({ nome: tribo.nome, cor: tribo.cor || '#FF6B00' });
+    reset({ nome: tribo.nome, cor: tribo.cor || PURPLE });
     setOpenDialog(true);
   };
 
@@ -197,7 +198,7 @@ export default function TribosPage() {
           <Box sx={{ background: 'rgba(255,255,255,0.05)', borderRadius: 2, overflow: 'auto' }}>
             <Table>
               <TableHead>
-                <TableRow sx={{ background: 'rgba(255,107,0,0.12)' }}>
+                <TableRow>
                   <TableCell>Imagem</TableCell>
                   <TableCell>Nome</TableCell>
                   <TableCell>Cor</TableCell>
@@ -206,7 +207,7 @@ export default function TribosPage() {
               </TableHead>
               <TableBody>
                 {tribos?.map((tribo) => (
-                  <TableRow key={tribo.id} sx={{ '&:hover': { background: 'rgba(255,255,255,0.05)' } }}>
+                  <TableRow key={tribo.id} sx={{ '&:hover': { background: 'var(--surface-hover)' } }}>
                     <TableCell>
                       <CoverArt name={tribo.nome} color={tribo.cor} src={tribo.logo} size={40} />
                     </TableCell>
@@ -237,7 +238,7 @@ export default function TribosPage() {
           </Box>
         )}
 
-        <Dialog open={openDialog} onClose={closeForm} fullScreen={isMobile} fullWidth maxWidth="sm">
+        <Dialog open={openDialog} onClose={closeForm} fullWidth maxWidth="sm">
           <DialogTitle>{editingTribo ? 'Editar Tribo' : 'Nova Tribo'}</DialogTitle>
           <DialogContent>
             <Stack spacing={2} sx={{ mt: 2 }}>

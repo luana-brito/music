@@ -7,7 +7,7 @@ import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
 import LibraryMusicIcon from '@mui/icons-material/LibraryMusic';
 import QueueMusicIcon from '@mui/icons-material/QueueMusic';
 import { usePathname, useRouter } from 'next/navigation';
-import { MUTED, ORANGE } from '@/lib/theme';
+import { PURPLE, TEXT_MUTED } from '@/lib/theme';
 import { navValueFromPath } from '@/lib/nav';
 
 export function BottomNav() {
@@ -35,17 +35,18 @@ export function BottomNav() {
           if (value === 'playlists') router.push('/playlists' as never);
         }}
         sx={{
-          background: 'rgba(0,0,0,0.92)',
+          background: 'rgba(16,10,24,0.94)',
           backdropFilter: 'blur(18px)',
-          borderTop: '1px solid rgba(255,255,255,0.06)',
+          borderTop: '1px solid var(--border-subtle)',
           height: 64,
           paddingBottom: 'env(safe-area-inset-bottom, 0px)',
           '& .MuiBottomNavigationAction-root': {
-            color: MUTED,
+            color: TEXT_MUTED,
             minWidth: 0,
+            minHeight: 44,
           },
           '& .Mui-selected': {
-            color: `${ORANGE} !important`,
+            color: `${PURPLE} !important`,
           },
         }}
       >

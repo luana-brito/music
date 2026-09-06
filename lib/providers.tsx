@@ -6,6 +6,7 @@ import { ThemeProvider, CssBaseline } from '@mui/material';
 import { SessionProvider } from 'next-auth/react';
 import { PlayerProvider } from '@/hooks/usePlayer';
 import { appTheme } from '@/lib/theme';
+import { SplashScreen } from '@/components/brand/SplashScreen';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -31,6 +32,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider theme={appTheme}>
           <CssBaseline />
+          <SplashScreen />
           <PlayerProvider>{children}</PlayerProvider>
         </ThemeProvider>
       </QueryClientProvider>
