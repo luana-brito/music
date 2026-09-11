@@ -1,18 +1,14 @@
-import { createRequire } from 'node:module';
 import { Readable } from 'node:stream';
-import type { Archiver } from 'archiver';
+import { ZipArchive } from 'archiver';
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireAdmin } from '@/lib/requireAdmin';
 import { filterMusicas } from '@/lib/catalog';
 import { exportZipFileName, openAudioStream, zipEntryName } from '@/lib/zipExport';
 
-const require = createRequire(import.meta.url);
-const archiver = require('archiver') as (format: string, options?: { store?: boolean }) => Archiver;
-
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
-export const maxDuration = 300;
+export const maxDuration = 60;
 
 function parseYear(value: string | null) {
   if (!value) return null;
@@ -20,40 +16,54 @@ function parseYear(value: string | null) {
   return Number.isInteger(year) && year >= 1900 ? year : null;
 }
 
-export async function GET(request: NextRequest) {
-  const { error } = await requireAdmin();
-  if (error) return error;
-
-  const query = request.nextUrl.searchParams.get('q') || '';
-  const year = parseYear(request.nextUrl.searchParams.get('ano'));
-  const triboId = request.nextUrl.searchParams.get('triboId') || null;
-
-  const musicas = await prisma.musica.findMany({
-    include: { tribo: true },
-    orderBy: [{ nome: 'asc' }],
-  });
-
-  const filtered = filterMusicas(musicas, { query, year, triboId });
-  if (!filtered.length) {
-    return NextResponse.json({ error: 'Nenhuma música corresponde aos filtros' }, { status: 400 });
+async function readStreamBuffer(stream: Readable) {
+  const chunks: Buffer[] = [];
+  for await (const chunk of stream) {
+    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
   }
+  return Buffer.concat(chunks);
+}
 
-  const triboNome = triboId ? filtered[0]?.tribo?.nome : null;
-  const filename = exportZipFileName({ triboNome, year, query });
-  const archive = archiver('zip', { store: true });
-  const usedNames = new Set<string>();
-  const failures: string[] = [];
+export async function GET(request: NextRequest) {
+  try {
+    const { error } = await requireAdmin();
+    if (error) return error;
 
-  const fillArchive = async () => {
+    const query = request.nextUrl.searchParams.get('q') || '';
+    const year = parseYear(request.nextUrl.searchParams.get('ano'));
+    const triboId = request.nextUrl.searchParams.get('triboId') || null;
+
+    const musicas = await prisma.musica.findMany({
+      include: { tribo: true },
+      orderBy: [{ nome: 'asc' }],
+    });
+
+    const filtered = filterMusicas(musicas, { query, year, triboId });
+    if (!filtered.length) {
+      return NextResponse.json({ error: 'Nenhuma música corresponde aos filtros' }, { status: 400 });
+    }
+
+    const triboNome = triboId ? filtered[0]?.tribo?.nome : null;
+    const filename = exportZipFileName({ triboNome, year, query });
+    const archive = new ZipArchive({ store: true });
+    const zipChunks: Buffer[] = [];
+    const usedNames = new Set<string>();
+    const failures: string[] = [];
+
+    archive.on('data', (chunk: Buffer | Uint8Array) => {
+      zipChunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+    });
+
+    const zipDone = new Promise<void>((resolve, reject) => {
+      archive.once('end', resolve);
+      archive.once('error', reject);
+    });
+
     for (const musica of filtered) {
       const entryName = zipEntryName(musica, usedNames);
       try {
-        const stream = await openAudioStream(musica.blobUrl);
-        const chunks: Buffer[] = [];
-        for await (const chunk of stream) {
-          chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
-        }
-        archive.append(Buffer.concat(chunks), { name: entryName });
+        const audio = await readStreamBuffer(await openAudioStream(musica.blobUrl));
+        archive.append(audio, { name: entryName });
       } catch (err) {
         const message = err instanceof Error ? err.message : 'erro desconhecido';
         failures.push(`${musica.nome}: ${message}`);
@@ -65,20 +75,18 @@ export async function GET(request: NextRequest) {
     }
 
     await archive.finalize();
-  };
+    await zipDone;
 
-  fillArchive().catch((err) => {
-    archive.emit('error', err);
-  });
-
-  const body = Readable.toWeb(archive as unknown as Readable) as ReadableStream<Uint8Array>;
-
-  return new Response(body, {
-    headers: {
-      'Content-Type': 'application/zip',
-      'Content-Disposition': `attachment; filename="${filename}"`,
-      'Cache-Control': 'no-store',
-      'X-Content-Type-Options': 'nosniff',
-    },
-  });
+    return new Response(Buffer.concat(zipChunks), {
+      headers: {
+        'Content-Type': 'application/zip',
+        'Content-Disposition': `attachment; filename="${filename}"`,
+        'Cache-Control': 'no-store',
+        'X-Content-Type-Options': 'nosniff',
+      },
+    });
+  } catch (err) {
+    console.error('ZIP export failed:', err);
+    return NextResponse.json({ error: 'Não foi possível gerar o ZIP' }, { status: 500 });
+  }
 }

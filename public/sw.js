@@ -1,5 +1,5 @@
-const CACHE_NAME = 'hype-v1.0.1';
-const RUNTIME_CACHE = 'hype-runtime-v1.0.1';
+const CACHE_NAME = 'hype-v1.0.2';
+const RUNTIME_CACHE = 'hype-runtime-v1.0.2';
 const OFFLINE_URL = '/offline.html';
 
 const PRECACHE_URLS = ['/', '/manifest.json', OFFLINE_URL];
@@ -30,7 +30,11 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  if (url.pathname.startsWith('/_next/') || url.pathname.includes('webpack-hmr') || url.pathname.startsWith('/api/auth/')) {
+  if (
+    url.pathname.startsWith('/_next/') ||
+    url.pathname.includes('webpack-hmr') ||
+    url.pathname.startsWith('/api/')
+  ) {
     return;
   }
 
@@ -53,7 +57,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  if (url.origin === self.location.origin && (url.pathname.startsWith('/api/') || url.pathname.startsWith('/musicas/'))) {
+  if (url.origin === self.location.origin && url.pathname.startsWith('/musicas/')) {
     event.respondWith(
       fetch(request)
         .then((response) => {
