@@ -1,10 +1,14 @@
+import { createRequire } from 'node:module';
 import { Readable } from 'node:stream';
-import archiver from 'archiver';
+import type { Archiver } from 'archiver';
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireAdmin } from '@/lib/requireAdmin';
 import { filterMusicas } from '@/lib/catalog';
 import { exportZipFileName, openAudioStream, zipEntryName } from '@/lib/zipExport';
+
+const require = createRequire(import.meta.url);
+const archiver = require('archiver') as (format: string, options?: { store?: boolean }) => Archiver;
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
