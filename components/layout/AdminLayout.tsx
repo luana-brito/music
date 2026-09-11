@@ -21,6 +21,7 @@ import MusicNoteIcon from '@mui/icons-material/MusicNote';
 import GroupIcon from '@mui/icons-material/Group';
 import PersonIcon from '@mui/icons-material/Person';
 import SettingsIcon from '@mui/icons-material/Settings';
+import FolderZipIcon from '@mui/icons-material/FolderZip';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { usePathname, useRouter } from 'next/navigation';
 import { signOut } from 'next-auth/react';
@@ -33,6 +34,7 @@ const menuItems = [
   { label: 'Músicas', icon: MusicNoteIcon, href: '/admin/musicas' },
   { label: 'Tribos', icon: GroupIcon, href: '/admin/tribos' },
   { label: 'Usuários', icon: PersonIcon, href: '/admin/usuarios' },
+  { label: 'Baixar ZIP', icon: FolderZipIcon, href: '/admin/exportar' },
   { label: 'Config', icon: SettingsIcon, href: '/admin/settings' },
 ];
 
